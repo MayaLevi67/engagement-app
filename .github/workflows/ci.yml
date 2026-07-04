@@ -31,6 +31,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      # Pin npm to match the version used to generate package-lock.json
+      # (dev machines run npm 11). Node 20 bundles npm 10, which resolves the
+      # dependency tree differently and rejects an npm-11 lockfile in `npm ci`.
+      - run: npm install -g npm@11
       - run: npm ci
       - run: npx prisma migrate deploy
       - run: npm run lint
