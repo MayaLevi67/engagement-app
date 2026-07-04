@@ -29,7 +29,18 @@ export function RegisterForm() {
         );
         return;
       }
-      await signIn('credentials', { email, password, redirect: false });
+      const signInResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+      if (signInResult?.error) {
+        // Account was created successfully, but auto-sign-in failed.
+        // Send the user to log in manually instead of an unauthenticated
+        // redirect to /dashboard.
+        router.push('/login');
+        return;
+      }
       router.push('/dashboard');
     } finally {
       setSubmitting(false);

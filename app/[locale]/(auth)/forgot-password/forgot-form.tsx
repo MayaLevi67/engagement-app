@@ -18,8 +18,10 @@ export function ForgotForm() {
       // Always show the neutral message regardless of the outcome, to avoid
       // revealing whether the email is registered.
       await requestPasswordReset(email);
-      setSent(true);
+    } catch {
+      // Swallow unexpected errors — the neutral message is shown either way.
     } finally {
+      setSent(true);
       setSubmitting(false);
     }
   }
