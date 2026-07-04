@@ -17,7 +17,8 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
+      // Verified account linking (e.g. by verified email) is a future task;
+      // do not enable allowDangerousEmailAccountLinking here.
     }),
     Credentials({
       credentials: { email: {}, password: {} },
