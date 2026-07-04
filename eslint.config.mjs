@@ -5,6 +5,16 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    files: ['app/**/*.tsx'],
+    ignores: ['**/*.test.tsx'],
+    rules: {
+      'react/jsx-no-literals': [
+        'error',
+        { noStrings: true, ignoreProps: true, allowedStrings: ['·', '—', '/'] },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -1,0 +1,31 @@
+{
+  "Landing": {
+    "title": "מהיום שהתארסתם ועד החתונה"
+  },
+  "Auth": {
+    "loginTitle": "ברוכים השבים",
+    "registerTitle": "צרו חשבון",
+    "forgotTitle": "איפוס סיסמה",
+    "resetTitle": "בחרו סיסמה חדשה",
+    "nameLabel": "שם",
+    "emailLabel": "אימייל",
+    "passwordLabel": "סיסמה",
+    "signInButton": "התחברות",
+    "signUpButton": "יצירת חשבון",
+    "googleButton": "המשך עם Google",
+    "sendResetButton": "שליחת קישור לאיפוס",
+    "setPasswordButton": "עדכון סיסמה",
+    "toRegister": "אין לכם חשבון? הרשמו",
+    "toLogin": "כבר יש לכם חשבון? התחברו",
+    "forgotLink": "שכחתם סיסמה?",
+    "invalidCredentials": "אימייל או סיסמה שגויים",
+    "emailTaken": "האימייל הזה כבר רשום במערכת",
+    "invalidInput": "יש לבדוק את הפרטים ולנסות שוב",
+    "resetEmailSent": "אם האימייל הזה רשום במערכת, קישור לאיפוס בדרך אליכם.",
+    "resetSuccess": "הסיסמה עודכנה בהצלחה. אפשר להתחבר עכשיו.",
+    "invalidToken": "קישור האיפוס אינו תקין או שכבר נעשה בו שימוש.",
+    "expiredToken": "קישור האיפוס פג תוקף. יש לבקש קישור חדש."
+  },
+  "Dashboard": { "placeholder": "לוח בקרה (מוגן)" },
+  "Admin": { "placeholder": "אזור ניהול (למנהלים בלבד)" }
+}

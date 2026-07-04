@@ -1,0 +1,31 @@
+{
+  "Landing": {
+    "title": "From engaged to married"
+  },
+  "Auth": {
+    "loginTitle": "Welcome back",
+    "registerTitle": "Create your account",
+    "forgotTitle": "Reset your password",
+    "resetTitle": "Choose a new password",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "signInButton": "Sign in",
+    "signUpButton": "Create account",
+    "googleButton": "Continue with Google",
+    "sendResetButton": "Send reset link",
+    "setPasswordButton": "Update password",
+    "toRegister": "Don't have an account? Sign up",
+    "toLogin": "Already have an account? Sign in",
+    "forgotLink": "Forgot your password?",
+    "invalidCredentials": "Incorrect email or password",
+    "emailTaken": "That email is already registered",
+    "invalidInput": "Please check the details and try again",
+    "resetEmailSent": "If that email is registered, a reset link is on its way.",
+    "resetSuccess": "Your password has been updated. You can sign in now.",
+    "invalidToken": "This reset link is invalid or has already been used.",
+    "expiredToken": "This reset link has expired. Request a new one."
+  },
+  "Dashboard": { "placeholder": "Dashboard (protected)" },
+  "Admin": { "placeholder": "Admin area (admins only)" }
+}
