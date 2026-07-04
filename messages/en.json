@@ -80,5 +80,11 @@
       "DESIGN": "Design",
       "FASHION": "Fashion"
     }
+  },
+  "WeddingSettings": {
+    "title": "Wedding profile",
+    "save": "Save changes",
+    "saved": "Your changes have been saved",
+    "error": "Something went wrong. Please try again"
   }
 }
