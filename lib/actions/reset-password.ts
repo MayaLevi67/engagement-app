@@ -26,7 +26,13 @@ export async function requestPasswordReset(
   });
 
   const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`;
-  await sendPasswordResetEmail(email, resetUrl);
+
+  // Never let an email failure change the caller-visible outcome.
+  try {
+    await sendPasswordResetEmail(email, resetUrl);
+  } catch (err) {
+    console.error('[password-reset] email send failed', err);
+  }
 
   return { ok: true };
 }

@@ -34,6 +34,28 @@ describe('password reset', () => {
     expect(tokens).toHaveLength(1);
   });
 
+  it('still returns ok and stores a token when the email send fails', async () => {
+    await prisma.user.create({
+      data: { email: 'reset-fail@example.com', passwordHash: 'x' },
+    });
+    vi.mocked(sendPasswordResetEmail).mockRejectedValueOnce(
+      new Error('smtp down'),
+    );
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const result = await requestPasswordReset('reset-fail@example.com');
+    expect(result).toEqual({ ok: true });
+
+    const tokens = await prisma.verificationToken.findMany({
+      where: { identifier: 'reset-fail@example.com' },
+    });
+    expect(tokens).toHaveLength(1);
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('returns ok but sends nothing for an unknown email (no enumeration)', async () => {
     const result = await requestPasswordReset('ghost@example.com');
     expect(result).toEqual({ ok: true });
