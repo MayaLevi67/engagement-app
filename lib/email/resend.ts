@@ -1,11 +1,19 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Constructed lazily (not at module scope) because the Resend constructor
+// throws synchronously when the API key is missing/empty (e.g. local dev
+// without Resend configured). Callers (see requestPasswordReset) already
+// swallow send failures to preserve the no-enumeration guarantee, but that
+// only works if the throw happens inside the async call, not at import time.
+function getResendClient(): Resend {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string,
 ): Promise<void> {
+  const resend = getResendClient();
   const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to,

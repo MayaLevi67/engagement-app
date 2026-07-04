@@ -7,9 +7,10 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     files: ['app/**/*.tsx'],
+    ignores: ['**/*.test.tsx'],
     rules: {
       'react/jsx-no-literals': [
-        'warn',
+        'error',
         { noStrings: true, ignoreProps: true, allowedStrings: ['·', '—', '/'] },
       ],
     },

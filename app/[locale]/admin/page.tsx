@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 
 export default async function AdminPage({
   params,
@@ -7,5 +7,6 @@ export default async function AdminPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <main className="p-8">Admin (ADMIN only)</main>;
+  const t = await getTranslations('Admin');
+  return <main className="p-8">{t('placeholder')}</main>;
 }

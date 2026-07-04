@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 
 export default async function DashboardPage({
   params,
@@ -7,5 +7,6 @@ export default async function DashboardPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <main className="p-8">Dashboard (protected)</main>;
+  const t = await getTranslations('Dashboard');
+  return <main className="p-8">{t('placeholder')}</main>;
 }

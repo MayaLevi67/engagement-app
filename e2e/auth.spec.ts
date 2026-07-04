@@ -15,9 +15,10 @@ test('english route renders LTR', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
 
-test('protected dashboard redirects logged-out users to login', async ({
+test('protected dashboard redirects logged-out users to a real login page', async ({
   page,
 }) => {
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByLabel(/email|אימייל/i)).toBeVisible();
 });
