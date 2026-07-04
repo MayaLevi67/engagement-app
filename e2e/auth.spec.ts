@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-test('landing page renders in Hebrew by default (RTL)', async ({ page }) => {
+// playwright.config.ts pins use.locale to 'he-IL', so this only proves a
+// Hebrew-preferring browser gets the Hebrew landing page: next-intl negotiates
+// the locale from Accept-Language, and 'he' also happens to be the routing
+// defaultLocale (the fallback for unrecognized locales).
+test('a Hebrew-preferring visitor gets the Hebrew landing (RTL)', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.locator('html')).toHaveAttribute('lang', 'he');

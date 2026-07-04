@@ -10,6 +10,7 @@ export default defineConfig({
     globals: true,
     globalSetup: ['./test/global-setup.ts'],
     exclude: [...configDefaults.exclude, 'e2e/**'],
+    fileParallelism: false,
   },
   resolve: {
     alias: {
