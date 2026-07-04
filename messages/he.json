@@ -27,5 +27,58 @@
     "expiredToken": "קישור האיפוס פג תוקף. יש לבקש קישור חדש."
   },
   "Dashboard": { "placeholder": "לוח בקרה (מוגן)" },
-  "Admin": { "placeholder": "אזור ניהול (למנהלים בלבד)" }
+  "Admin": { "placeholder": "אזור ניהול (למנהלים בלבד)" },
+  "Onboarding": {
+    "progress": "שלב {current} מתוך {total}",
+    "continue": "המשך",
+    "skip": "דלגו כרגע",
+    "back": "חזרה",
+    "invalid": "יש לבדוק את התשובה ולנסות שוב",
+    "finish": "כניסה ללוח הבקרה",
+    "stepNames": "מזל טוב",
+    "stepNamesSubtitle": "בואו נתחיל בשמות שלכם, כדי שנוכל להתאים לכם את החוויה",
+    "stepDate": "תאריך החתונה שלכם",
+    "stepDateSubtitle": "גם הערכה גסה תעזור לנו לתכנן את לוח הזמנים",
+    "stepSizeBudget": "היקף ותקציב",
+    "stepSizeBudgetSubtitle": "תחושה כללית של סדר הגודל, בלי להתחייב לכלום",
+    "stepStyle": "הסגנון שלכם",
+    "stepStyleSubtitle": "ספרו לנו איך אתם מדמיינים את היום",
+    "stepPriorities": "מה הכי חשוב לכם",
+    "stepPrioritiesSubtitle": "בחרו עד שלושה דברים שהכי חשובים לכם",
+    "stepDone": "הכול מוכן",
+    "stepDoneSubtitle": "נשתמש בזה כדי להתאים לכם את חוויית התכנון",
+    "doneSummary": "מרחב תכנון החתונה שלכם מוכן.",
+    "doneSummaryNamed": "{name}, מרחב תכנון החתונה שלכם מוכן."
+  },
+  "WeddingProfile": {
+    "partner1Name": "שם בן/בת הזוג",
+    "partner2Name": "שם בן/בת הזוג השני/ה",
+    "weddingDate": "תאריך החתונה",
+    "dontKnowYet": "עדיין לא יודעים",
+    "approximate": "התאריך משוער",
+    "guestCount": "מספר אורחים",
+    "budgetTotal": "תקציב כולל (₪)",
+    "city": "עיר",
+    "venueSetting": "סוג המתחם",
+    "ceremonyType": "סוג הטקס",
+    "priorities": "בחרו עד שלושה דברים בעדיפות עליונה",
+    "venue": {
+      "INDOOR": "מקורה",
+      "OUTDOOR": "בחוץ",
+      "MIXED": "משולב"
+    },
+    "ceremony": {
+      "RELIGIOUS": "דתי",
+      "CIVIL": "אזרחי",
+      "MIXED": "משולב"
+    },
+    "priority": {
+      "FOOD": "אוכל",
+      "PARTY": "מסיבה",
+      "PHOTOGRAPHY": "צילום",
+      "GUEST_EXPERIENCE": "חוויית האורחים",
+      "DESIGN": "עיצוב",
+      "FASHION": "אופנה"
+    }
+  }
 }

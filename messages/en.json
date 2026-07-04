@@ -27,5 +27,58 @@
     "expiredToken": "This reset link has expired. Request a new one."
   },
   "Dashboard": { "placeholder": "Dashboard (protected)" },
-  "Admin": { "placeholder": "Admin area (admins only)" }
+  "Admin": { "placeholder": "Admin area (admins only)" },
+  "Onboarding": {
+    "progress": "Step {current} of {total}",
+    "continue": "Continue",
+    "skip": "Skip for now",
+    "back": "Back",
+    "invalid": "Please check your answer and try again",
+    "finish": "Enter your dashboard",
+    "stepNames": "Congratulations",
+    "stepNamesSubtitle": "Let's start with your names, so we can personalize your journey",
+    "stepDate": "Your wedding date",
+    "stepDateSubtitle": "Even a rough idea helps us plan your timeline",
+    "stepSizeBudget": "Size and budget",
+    "stepSizeBudgetSubtitle": "A general sense of scale, nothing final",
+    "stepStyle": "Your style",
+    "stepStyleSubtitle": "Paint us a picture of the day you imagine",
+    "stepPriorities": "What matters most",
+    "stepPrioritiesSubtitle": "Choose up to three things you care about most",
+    "stepDone": "You're all set",
+    "stepDoneSubtitle": "We'll use this to tailor your planning experience",
+    "doneSummary": "Your wedding planning space is ready.",
+    "doneSummaryNamed": "{name}, your wedding planning space is ready."
+  },
+  "WeddingProfile": {
+    "partner1Name": "Your name",
+    "partner2Name": "Partner's name",
+    "weddingDate": "Wedding date",
+    "dontKnowYet": "We don't know yet",
+    "approximate": "This date is approximate",
+    "guestCount": "Guest count",
+    "budgetTotal": "Total budget (₪)",
+    "city": "City",
+    "venueSetting": "Venue setting",
+    "ceremonyType": "Ceremony type",
+    "priorities": "Pick up to three priorities",
+    "venue": {
+      "INDOOR": "Indoor",
+      "OUTDOOR": "Outdoor",
+      "MIXED": "Mixed"
+    },
+    "ceremony": {
+      "RELIGIOUS": "Religious",
+      "CIVIL": "Civil",
+      "MIXED": "Mixed"
+    },
+    "priority": {
+      "FOOD": "Food",
+      "PARTY": "Party",
+      "PHOTOGRAPHY": "Photography",
+      "GUEST_EXPERIENCE": "Guest experience",
+      "DESIGN": "Design",
+      "FASHION": "Fashion"
+    }
+  }
 }
