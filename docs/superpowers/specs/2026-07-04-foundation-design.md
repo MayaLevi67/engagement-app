@@ -34,7 +34,7 @@ This document covers **Phase 1 only**: the technical foundation every later phas
 - Wedding profile fields (date, budget, guest count, location, priorities) — Phase 2.
 - Checklist/Task/ChecklistTemplate schema — Phase 3.
 - Wedding Concepts, Budget categories, Vendor database — Phases 4–6.
-- Admin CMS UI — Phase 8 (though the `role`-based gating mechanism is built now).
+- Admin CMS UI — Phase 8 (though the `role`-based gating mechanism is built now). Phase 8 scope now includes, beyond content management (ChecklistTemplates, Concepts, Vendors, Translations): a Users view (browse/manage accounts), basic Analytics (usage/conversion stats), and an audit Log of admin actions — patterns drawn from a reference backoffice dashboard, noted here so they aren't lost before Phase 8 is designed.
 - Stripe integration and premium feature gating — Phase 9 (though the entitlement *model* is decided now, see below, since it depends on the Wedding date field this phase's schema anticipates).
 - AI agents / orchestrator / RAG — Phase 10.
 
@@ -89,6 +89,30 @@ proxy.ts                       # route protection (Next.js 16's renamed middlewa
 ```
 
 Route groups `(marketing)`, `(auth)`, `(app)` share the locale segment but get independent layouts (e.g. marketing has a public nav; `(app)` requires a session). `admin/` sits outside those groups since it's role-gated, not just session-gated. `lib/` holds cross-cutting server-side concerns so route/page files stay thin.
+
+## Design Tokens (Visual Foundation)
+
+The user's earlier Base44 MVP established a visual language worth carrying forward: a warm cream/parchment page background, a deep sage-green primary accent, a serif display face for headings paired with clean sans-serif body text, card-based layouts with soft shadows and generous rounded corners, and pill-shaped status badges. This is declared once now, as Tailwind theme tokens, rather than left for each later phase to reinvent — the same reasoning as the RTL logical-properties rule above: cheap to fix at the source, expensive to retrofit consistently across dozens of components later.
+
+```
+colors: {
+  background: '#F7F3EC',     // page background (cream/parchment)
+  surface: '#FFFFFF',        // card backgrounds
+  primary: '#5B7553',        // sage green (active nav, key stat card)
+  accent: '#C9A961',         // gold (premium badge, highlights)
+  text: '#2A2A28',           // primary body text
+  muted: '#8A8578',          // secondary/meta text
+},
+fontFamily: {
+  display: [/* serif, e.g. Playfair Display or Fraunces */],  // couple names, section headers
+  body: [/* clean sans, e.g. Inter */],                        // everything else
+},
+borderRadius: {
+  card: '1rem',
+},
+```
+
+Phase 1 only adds these token definitions to the Tailwind config and font setup (via `next/font`) as part of initial project scaffolding — it does not build any actual dashboard/checklist/etc. UI. Real screens are designed and built in their respective phases (e.g. the Dashboard screen itself is Phase 7), each pulling from this shared palette instead of hard-coded values.
 
 ## Domain Model
 
