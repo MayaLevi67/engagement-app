@@ -48,8 +48,8 @@ const STEP_SCHEMAS: Record<Exclude<OnboardingStepId, 'names' | 'done'>, z.ZodTyp
 export async function saveStep(step: keyof typeof STEP_SCHEMAS, input: unknown): Promise<ActionResult> {
   const userId = await requireUserId();
   if (!userId) return { ok: false, error: 'UNAUTHENTICATED' };
+  if (!Object.hasOwn(STEP_SCHEMAS, step)) return { ok: false, error: 'INVALID' };
   const schema = STEP_SCHEMAS[step];
-  if (!schema) return { ok: false, error: 'INVALID' };
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'INVALID' };
   const weddingId = await ensureWeddingId(userId);

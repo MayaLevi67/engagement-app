@@ -49,6 +49,26 @@ describe('onboarding actions', () => {
     expect(u?.wedding?.budgetTotal).toBe(180000);
   });
 
+  it('a user cannot mutate another user\'s wedding', async () => {
+    const userA = await makeUser('tenant-a@example.com');
+    currentUserId = userA;
+    await saveNames({ partner1Name: 'Ann' });
+    const a = await prisma.user.findUnique({ where: { id: userA }, include: { wedding: true } });
+    const weddingIdA = a?.wedding?.id;
+
+    const userB = await makeUser('tenant-b@example.com');
+    currentUserId = userB;
+    expect(await saveStep('sizeBudget', { guestCount: 50 })).toEqual({ ok: true });
+
+    const b = await prisma.user.findUnique({ where: { id: userB }, include: { wedding: true } });
+    expect(b?.wedding?.guestCount).toBe(50);
+
+    const aAfter = await prisma.user.findUnique({ where: { id: userA }, include: { wedding: true } });
+    expect(aAfter?.wedding?.guestCount).toBeNull();
+    expect(aAfter?.wedding?.id).toBe(weddingIdA);
+    expect(b?.wedding?.id).not.toBe(weddingIdA);
+  });
+
   it('completeOnboarding stamps onboardingCompletedAt', async () => {
     currentUserId = await makeUser('d@example.com');
     await saveNames({ partner1Name: 'Maya' });
