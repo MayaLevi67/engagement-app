@@ -14,6 +14,8 @@ async function makeUser(email: string) {
 }
 
 afterEach(async () => {
+  await prisma.task.deleteMany();
+  await prisma.checklistTemplate.deleteMany();
   await prisma.user.deleteMany();
   await prisma.wedding.deleteMany();
   currentUserId = null;
@@ -152,5 +154,41 @@ describe('onboarding actions', () => {
     expect(await updateWeddingProfile({ partner1Name: '', priorities: [] })).toEqual({ ok: false, error: 'INVALID' });
     const u = await prisma.user.findUnique({ where: { id: currentUserId! }, include: { wedding: true } });
     expect(u?.wedding?.partner1Name).toBe('Maya');
+  });
+
+  it('completeOnboarding seeds tasks from active checklist templates', async () => {
+    await prisma.checklistTemplate.create({
+      data: {
+        title_en: 'Book venue', title_he: 'הזמנת אולם',
+        category: 'VENUE', dueOffsetDays: 180, active: true, sortOrder: 1,
+      },
+    });
+    currentUserId = await makeUser('i@example.com');
+    await saveNames({ partner1Name: 'Maya' });
+    expect(await completeOnboarding()).toEqual({ ok: true });
+    const u = await prisma.user.findUnique({ where: { id: currentUserId! }, include: { wedding: true } });
+    const tasks = await prisma.task.findMany({ where: { weddingId: u!.wedding!.id } });
+    expect(tasks.length).toBeGreaterThanOrEqual(1);
+    expect(tasks.some((t) => t.title_en === 'Book venue')).toBe(true);
+  });
+
+  it('updateWeddingProfile recomputes due dates for already-seeded tasks when weddingDate changes', async () => {
+    await prisma.checklistTemplate.create({
+      data: {
+        title_en: 'Book venue', title_he: 'הזמנת אולם',
+        category: 'VENUE', dueOffsetDays: 180, active: true, sortOrder: 1,
+      },
+    });
+    currentUserId = await makeUser('j@example.com');
+    await saveNames({ partner1Name: 'Maya' });
+    await completeOnboarding();
+
+    const res = await updateWeddingProfile({ partner1Name: 'Maya', priorities: [], weddingDate: new Date('2027-06-01') });
+    expect(res).toEqual({ ok: true });
+
+    const u = await prisma.user.findUnique({ where: { id: currentUserId! }, include: { wedding: true } });
+    const task = await prisma.task.findFirst({ where: { weddingId: u!.wedding!.id, title_en: 'Book venue' } });
+    expect(task?.dueDate).toBeInstanceOf(Date);
+    expect(task?.dueDate?.getTime()).toBe(new Date('2027-06-01').getTime() - 180 * 24 * 60 * 60 * 1000);
   });
 });

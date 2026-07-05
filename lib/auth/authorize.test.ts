@@ -67,4 +67,11 @@ describe('authorizeRoute', () => {
     expect(authorizeRoute({ pathname: '/en/settings/wedding', isLoggedIn: false, role: null }))
       .toEqual({ type: 'redirect', to: '/en/login' });
   });
+
+  it('login-gates the checklist route', () => {
+    expect(authorizeRoute({ pathname: '/checklist', isLoggedIn: false, role: null }))
+      .toEqual({ type: 'redirect', to: '/login' });
+    expect(authorizeRoute({ pathname: '/checklist', isLoggedIn: true, role: 'USER' }))
+      .toEqual({ type: 'next' });
+  });
 });
