@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { getCurrentWedding } from '@/lib/wedding/queries';
+import { seedTasksForWedding, recomputeDueDates } from '@/lib/checklist/copy';
 import {
   namesSchema, dateSchema, sizeBudgetSchema, styleSchema, prioritiesSchema,
   fullProfileSchema, type OnboardingStepId,
@@ -57,6 +58,9 @@ export async function saveStep(step: keyof typeof STEP_SCHEMAS, input: unknown):
     where: { id: weddingId },
     data: parsed.data as Prisma.WeddingUpdateInput,
   });
+  if (step === 'date') {
+    await recomputeDueDates(weddingId);
+  }
   return { ok: true };
 }
 
@@ -65,6 +69,7 @@ export async function completeOnboarding(): Promise<ActionResult> {
   if (!userId) return { ok: false, error: 'UNAUTHENTICATED' };
   const weddingId = await ensureWeddingId(userId);
   await prisma.wedding.update({ where: { id: weddingId }, data: { onboardingCompletedAt: new Date() } });
+  await seedTasksForWedding(weddingId);
   return { ok: true };
 }
 
@@ -75,5 +80,6 @@ export async function updateWeddingProfile(input: unknown): Promise<ActionResult
   if (!parsed.success) return { ok: false, error: 'INVALID' };
   const weddingId = await ensureWeddingId(userId);
   await prisma.wedding.update({ where: { id: weddingId }, data: parsed.data });
+  await recomputeDueDates(weddingId);
   return { ok: true };
 }
