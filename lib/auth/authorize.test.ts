@@ -55,4 +55,16 @@ describe('authorizeRoute', () => {
       authorizeRoute({ pathname: '/login', isLoggedIn: true, role: 'USER' }),
     ).toEqual({ type: 'redirect', to: '/dashboard' });
   });
+
+  it('login-gates the onboarding route', () => {
+    expect(authorizeRoute({ pathname: '/onboarding', isLoggedIn: false, role: null }))
+      .toEqual({ type: 'redirect', to: '/login' });
+    expect(authorizeRoute({ pathname: '/onboarding', isLoggedIn: true, role: 'USER' }))
+      .toEqual({ type: 'next' });
+  });
+
+  it('login-gates the settings route (incl. /en prefix)', () => {
+    expect(authorizeRoute({ pathname: '/en/settings/wedding', isLoggedIn: false, role: null }))
+      .toEqual({ type: 'redirect', to: '/en/login' });
+  });
 });

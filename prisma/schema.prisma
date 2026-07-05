@@ -12,6 +12,27 @@ enum UserRole {
   ADMIN
 }
 
+enum VenueSetting {
+  INDOOR
+  OUTDOOR
+  MIXED
+}
+
+enum CeremonyType {
+  RELIGIOUS
+  CIVIL
+  MIXED
+}
+
+enum Priority {
+  FOOD
+  PARTY
+  PHOTOGRAPHY
+  GUEST_EXPERIENCE
+  DESIGN
+  FASHION
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -35,6 +56,18 @@ model User {
 model Wedding {
   id        String   @id @default(cuid())
   members   User[]
+
+  partner1Name          String?
+  partner2Name          String?
+  weddingDate           DateTime?
+  dateIsApproximate     Boolean       @default(false)
+  guestCount            Int?
+  budgetTotal           Int?
+  city                  String?
+  venueSetting          VenueSetting?
+  ceremonyType          CeremonyType?
+  priorities            Priority[]
+  onboardingCompletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
