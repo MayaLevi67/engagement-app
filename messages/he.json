@@ -86,5 +86,65 @@
     "save": "שמירת שינויים",
     "saved": "השינויים נשמרו בהצלחה",
     "error": "משהו השתבש. נסו שוב"
+  },
+  "Checklist": {
+    "title": "רשימת המשימות",
+    "progress": "{done} מתוך {total} הושלמו",
+    "groupByCategory": "לפי קטגוריה",
+    "groupByTimeline": "לפי ציר זמן",
+    "buckets": {
+      "overdue": "באיחור",
+      "thisMonth": "החודש",
+      "upcoming": "בקרוב",
+      "noDate": "בלי תאריך",
+      "done": "הושלמו"
+    },
+    "filters": {
+      "category": "קטגוריה",
+      "status": "סטטוס",
+      "priority": "עדיפות",
+      "all": "הכול"
+    },
+    "statusOpen": "פתוחות",
+    "statusDone": "הושלמו",
+    "addCustom": "הוספת משימה",
+    "addCustomTitle": "משימה חדשה",
+    "titleLabel": "כותרת",
+    "categoryLabel": "קטגוריה",
+    "priorityLabel": "עדיפות",
+    "dueDateLabel": "תאריך יעד",
+    "noDueDate": "אין תאריך יעד",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "empty": "אין משימות התואמות את הסינון",
+    "recentlyDeleted": "נמחקו לאחרונה",
+    "backToChecklist": "חזרה לרשימת המשימות",
+    "trashEmpty": "אין פריטים באשפה",
+    "restore": "שחזור",
+    "deleteForever": "מחיקה לצמיתות",
+    "reminderOn": "תזכורת פעילה",
+    "reminderOff": "תזכורת כבויה",
+    "edit": "עריכה",
+    "delete": "מחיקה",
+    "error": "משהו השתבש. נסו שוב"
+  },
+  "TaskCategory": {
+    "VENUE": "אולם",
+    "CATERING": "קייטרינג",
+    "PHOTOGRAPHY": "צילום",
+    "MUSIC": "מוזיקה",
+    "ATTIRE": "לבוש",
+    "DESIGN": "עיצוב",
+    "FLOWERS": "פרחים",
+    "GUESTS": "אורחים",
+    "CEREMONY": "טקס",
+    "PLANNING": "תכנון",
+    "BUDGET": "תקציב",
+    "OTHER": "אחר"
+  },
+  "TaskPriority": {
+    "LOW": "נמוכה",
+    "MEDIUM": "בינונית",
+    "HIGH": "גבוהה"
   }
 }

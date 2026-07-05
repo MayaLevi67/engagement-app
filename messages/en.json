@@ -86,5 +86,65 @@
     "save": "Save changes",
     "saved": "Your changes have been saved",
     "error": "Something went wrong. Please try again"
+  },
+  "Checklist": {
+    "title": "Checklist",
+    "progress": "{done} of {total} done",
+    "groupByCategory": "By category",
+    "groupByTimeline": "By timeline",
+    "buckets": {
+      "overdue": "Overdue",
+      "thisMonth": "This month",
+      "upcoming": "Upcoming",
+      "noDate": "No date",
+      "done": "Done"
+    },
+    "filters": {
+      "category": "Category",
+      "status": "Status",
+      "priority": "Priority",
+      "all": "All"
+    },
+    "statusOpen": "Open",
+    "statusDone": "Done",
+    "addCustom": "Add task",
+    "addCustomTitle": "New task",
+    "titleLabel": "Title",
+    "categoryLabel": "Category",
+    "priorityLabel": "Priority",
+    "dueDateLabel": "Due date",
+    "noDueDate": "No due date",
+    "save": "Save",
+    "cancel": "Cancel",
+    "empty": "No tasks match your filters",
+    "recentlyDeleted": "Recently deleted",
+    "backToChecklist": "Back to checklist",
+    "trashEmpty": "Nothing in the trash",
+    "restore": "Restore",
+    "deleteForever": "Delete permanently",
+    "reminderOn": "Reminder on",
+    "reminderOff": "Reminder off",
+    "edit": "Edit",
+    "delete": "Delete",
+    "error": "Something went wrong. Please try again"
+  },
+  "TaskCategory": {
+    "VENUE": "Venue",
+    "CATERING": "Catering",
+    "PHOTOGRAPHY": "Photography",
+    "MUSIC": "Music",
+    "ATTIRE": "Attire",
+    "DESIGN": "Design",
+    "FLOWERS": "Flowers",
+    "GUESTS": "Guests",
+    "CEREMONY": "Ceremony",
+    "PLANNING": "Planning",
+    "BUDGET": "Budget",
+    "OTHER": "Other"
+  },
+  "TaskPriority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High"
   }
 }
