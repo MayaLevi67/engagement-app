@@ -33,6 +33,38 @@ enum Priority {
   FASHION
 }
 
+enum TaskCategory {
+  VENUE
+  CATERING
+  PHOTOGRAPHY
+  MUSIC
+  ATTIRE
+  DESIGN
+  FLOWERS
+  GUESTS
+  CEREMONY
+  PLANNING
+  BUDGET
+  OTHER
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  OPEN
+  DONE
+}
+
+enum TitleLocale {
+  AUTO
+  EN
+  HE
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -68,6 +100,9 @@ model Wedding {
   ceremonyType          CeremonyType?
   priorities            Priority[]
   onboardingCompletedAt DateTime?
+
+  tasks         Task[]
+  tasksSeededAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -105,4 +140,53 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model ChecklistTemplate {
+  id            String       @id @default(cuid())
+  title_en      String
+  title_he      String
+  titleLocale   TitleLocale  @default(AUTO)
+  category      TaskCategory
+  priority      TaskPriority @default(MEDIUM)
+  dueOffsetDays Int?         // days before the wedding; null = no timeline
+  active        Boolean      @default(true)
+  sortOrder     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Task {
+  id                String       @id @default(cuid())
+  weddingId         String
+  wedding           Wedding      @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  // snapshot of the template at copy time (stands alone)
+  title_en          String
+  title_he          String
+  titleLocale       TitleLocale  @default(AUTO)
+  category          TaskCategory
+  priority          TaskPriority @default(MEDIUM)
+  dueOffsetDays     Int?
+
+  dueDate           DateTime?    // computed = weddingDate − dueOffsetDays
+  dueDateOverridden Boolean      @default(false)
+
+  status            TaskStatus   @default(OPEN)
+  completedAt       DateTime?
+
+  isCustom          Boolean      @default(false)
+  sourceTemplateId  String?      // provenance only; null on template delete
+
+  reminderEnabled   Boolean      @default(false)
+  remindAt          DateTime?
+
+  notes             String?
+  sortOrder         Int          @default(0)
+  deletedAt         DateTime?    // soft-delete / trash
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([weddingId, deletedAt])
 }
