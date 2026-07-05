@@ -54,13 +54,17 @@ function pickOptionalPayload(step: OptionalStepId, data: WizardData): unknown {
   switch (step) {
     case 'date':
       return {
-        weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined,
+        weddingDate: data.weddingDate ? new Date(data.weddingDate) : null,
         dateIsApproximate: data.dateIsApproximate,
       };
     case 'sizeBudget':
-      return { guestCount: data.guestCount, budgetTotal: data.budgetTotal };
+      return { guestCount: data.guestCount ?? null, budgetTotal: data.budgetTotal ?? null };
     case 'style':
-      return { city: data.city || undefined, venueSetting: data.venueSetting, ceremonyType: data.ceremonyType };
+      return {
+        city: data.city.trim() || null,
+        venueSetting: data.venueSetting ?? null,
+        ceremonyType: data.ceremonyType ?? null,
+      };
     case 'priorities':
       return { priorities: data.priorities };
     default:
@@ -120,7 +124,7 @@ export function OnboardingWizard({ initial, defaultPartner1 }: OnboardingWizardP
       setPending(true);
       const result = await saveNames({
         partner1Name: data.partner1Name,
-        partner2Name: data.partner2Name || undefined,
+        partner2Name: data.partner2Name.trim() || null,
       });
       setPending(false);
       if (handleActionResult(result)) {

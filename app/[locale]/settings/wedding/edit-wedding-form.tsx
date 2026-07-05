@@ -44,14 +44,14 @@ export function EditWeddingForm({ initial }: EditWeddingFormProps) {
 
     const payload = {
       partner1Name: data.partner1Name,
-      partner2Name: data.partner2Name || undefined,
-      weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined,
+      partner2Name: data.partner2Name.trim() || null,
+      weddingDate: data.weddingDate ? new Date(data.weddingDate) : null,
       dateIsApproximate: data.dateIsApproximate,
-      guestCount: data.guestCount,
-      budgetTotal: data.budgetTotal,
-      city: data.city || undefined,
-      venueSetting: data.venueSetting,
-      ceremonyType: data.ceremonyType,
+      guestCount: data.guestCount ?? null,
+      budgetTotal: data.budgetTotal ?? null,
+      city: data.city.trim() || null,
+      venueSetting: data.venueSetting ?? null,
+      ceremonyType: data.ceremonyType ?? null,
       priorities: data.priorities,
     };
 
