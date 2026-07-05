@@ -32,6 +32,8 @@ describe('copy engine', () => {
     expect(tasks).toHaveLength(2); // inactive excluded
     expect(tasks[0].title_he).toBe('א');
     expect(tasks[0].dueDate?.toISOString().slice(0,10)).toBe('2026-08-23'); // 100 days before
+    expect(tasks[0].status).toBe('OPEN');
+    expect(tasks[0].isCustom).toBe(false);
     expect(tasks[1].dueDate).toBeNull(); // no offset
     const w2 = await prisma.wedding.findUnique({ where: { id: w.id } });
     expect(w2?.tasksSeededAt).toBeInstanceOf(Date);
@@ -62,5 +64,20 @@ describe('copy engine', () => {
     await recomputeDueDates(w.id);
     const a2 = await prisma.task.findFirst({ where: { id: a!.id } });
     expect(a2?.dueDate?.toISOString().slice(0,10)).toBe('2027-01-01'); // overridden kept
+  });
+
+  it('recompute updates a non-overridden task dueDate when the wedding date changes', async () => {
+    await seedTemplates();
+    const w = await prisma.wedding.create({ data: { weddingDate: new Date('2026-12-01T00:00:00Z') } });
+    await seedTasksForWedding(w.id);
+    const a = await prisma.task.findFirst({ where: { weddingId: w.id, title_en: 'A' } });
+    expect(a?.dueDate?.toISOString().slice(0,10)).toBe('2026-08-23'); // initial computed value
+    // change wedding date + recompute, without overriding task A
+    await prisma.wedding.update({ where: { id: w.id }, data: { weddingDate: new Date('2027-06-01T00:00:00Z') } });
+    await recomputeDueDates(w.id);
+    const a2 = await prisma.task.findFirst({ where: { id: a!.id } });
+    expect(a2?.dueDate?.toISOString().slice(0,10)).toBe('2027-02-21'); // recomputed: 2027-06-01 minus 100 days
+    const b2 = await prisma.task.findFirst({ where: { weddingId: w.id, title_en: 'B' } });
+    expect(b2?.dueDate).toBeNull(); // no offset, stays null
   });
 });
