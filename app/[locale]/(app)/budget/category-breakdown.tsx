@@ -34,13 +34,14 @@ export function CategoryBreakdown({
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-lg text-text">{t('breakdownTitle')}</h2>
       {categories.map((c) => {
+        const recommendedLine = `${t('recommended')}: ${fmt(c.recommended)}`;
         const committedLine = `${t('committed')}: ${fmt(c.committed)}`;
         const openLine = `${t('open')}: ${fmt(c.open)}`;
         return (
         <div key={c.category} className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-medium text-text">{tCategory(c.category)}</span>
-            <span className="text-sm text-text">{fmt(c.recommended)}</span>
+            <span className="text-sm text-text">{recommendedLine}</span>
           </div>
           <div className="flex flex-wrap gap-4 text-xs text-muted">
             <span>{committedLine}</span>
