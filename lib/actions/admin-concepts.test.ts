@@ -14,7 +14,22 @@ vi.mock('@/lib/db', () => ({
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { createConcept, updateConcept, deleteConcept } from './admin-concepts';
+import {
+  createConcept,
+  updateConcept,
+  deleteConcept,
+  setConceptActive,
+  setConceptPremium,
+  reorderConcept,
+  createElement,
+  updateElement,
+  deleteElement,
+  reorderElement,
+  addImage,
+  updateImage,
+  deleteImage,
+  reorderImage,
+} from './admin-concepts';
 
 function asAdmin(isAdmin: boolean) {
   (auth as unknown as Mock).mockResolvedValue(isAdmin ? { user: { id: 'a1' } } : null);
@@ -22,6 +37,30 @@ function asAdmin(isAdmin: boolean) {
 }
 
 beforeEach(() => vi.clearAllMocks());
+
+const ADMIN_ACTIONS: [string, () => Promise<unknown>][] = [
+  ['createConcept', () => createConcept({})],
+  ['updateConcept', () => updateConcept('id', {})],
+  ['deleteConcept', () => deleteConcept('id')],
+  ['setConceptActive', () => setConceptActive('id', true)],
+  ['setConceptPremium', () => setConceptPremium('id', true)],
+  ['reorderConcept', () => reorderConcept('id', 0)],
+  ['createElement', () => createElement('cid', {})],
+  ['updateElement', () => updateElement('id', {})],
+  ['deleteElement', () => deleteElement('id')],
+  ['reorderElement', () => reorderElement('id', 0)],
+  ['addImage', () => addImage('cid', {})],
+  ['updateImage', () => updateImage('id', {})],
+  ['deleteImage', () => deleteImage('id')],
+  ['reorderImage', () => reorderImage('id', 0)],
+];
+
+describe('admin gate', () => {
+  it.each(ADMIN_ACTIONS)('%s rejects a non-admin with FORBIDDEN', async (_name, action) => {
+    asAdmin(false);
+    expect(await action()).toEqual({ ok: false, error: 'FORBIDDEN' });
+  });
+});
 
 describe('createConcept', () => {
   it('rejects a non-admin', async () => {

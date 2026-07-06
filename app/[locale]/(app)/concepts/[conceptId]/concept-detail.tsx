@@ -36,7 +36,7 @@ function formatCostRange(label: string, min: number | null, max: number | null):
   return `${label}: ${min ?? '—'}–${max ?? '—'} ₪`;
 }
 
-export function ConceptDetail({ concept }: { locale: string; concept: SerializedConceptDetail }) {
+export function ConceptDetail({ concept }: { concept: SerializedConceptDetail }) {
   const t = useTranslations('Concepts');
   const tCategory = useTranslations('TaskCategory');
   const [selected, setSelected] = useState(concept.isSelected);

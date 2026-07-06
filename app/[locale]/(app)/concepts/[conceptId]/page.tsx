@@ -51,7 +51,7 @@ export default async function ConceptDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-6 sm:p-8">
-      <ConceptDetail locale={locale} concept={detail} />
+      <ConceptDetail concept={detail} />
     </main>
   );
 }

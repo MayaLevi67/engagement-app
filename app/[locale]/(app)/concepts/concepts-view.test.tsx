@@ -25,7 +25,7 @@ describe('ConceptCard', () => {
 
 describe('ConceptDetail', () => {
   it('renders ideas and reflects an already-added idea', () => {
-    render(<ConceptDetail locale="en" concept={{
+    render(<ConceptDetail concept={{
       id: 'c1', title: 'Party Time', tagline: '', description: 'Desc', palette: [], isPremium: false, isSelected: false,
       images: [], elements: [
         { id: 'el1', title: 'Two DJs', description: '', category: 'MUSIC', estCostMin: 6000, estCostMax: 14000, isAdded: true },

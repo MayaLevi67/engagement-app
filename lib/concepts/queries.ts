@@ -46,7 +46,7 @@ export async function getWeddingConceptState(weddingId: string): Promise<{
   return {
     selectedConceptId: wedding?.selectedConceptId ?? null,
     favoriteConceptIds: favorites.map((f) => f.conceptId),
-    pushedElementIds: pushed.map((p) => p.sourceConceptElementId!).filter(Boolean),
+    pushedElementIds: pushed.map((p) => p.sourceConceptElementId!),
   };
 }
 
