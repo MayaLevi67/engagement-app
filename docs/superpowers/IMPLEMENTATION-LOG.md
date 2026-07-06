@@ -78,6 +78,28 @@ Each phase was built via the superpowers brainstorm → spec → plan → subage
 
 ---
 
+## Phase 5 — Budget Planning & Optimization ✅ complete (branch `phase-5-budget`)
+
+**Spec:** `specs/2026-07-06-budget-planning-design.md` · **Plan:** `plans/2026-07-06-phase5-budget.md`
+**Branch `phase-5-budget`**, base `d34a894` (includes Phase 1–4 merges), HEAD `31c1499`, 13 commits. 8 tasks + final review.
+**Delivered:** `BudgetTemplate` (admin-editable baseline % master, seeded to sum 100 across all 12 `TaskCategory`s) + `BudgetAllocation` (per-couple category "pin") + `Wedding.avgGiftPerGuest` + `Task.estimatedCost`/`amountPaid`; pure `lib/budget/` (`priority-map`, `gifts`, `rollup`, a deterministic water-filling `optimize`, Zod `schema`); couple actions (`setBudgetTotal`/`setAvgGiftPerGuest`/`setCategoryAllocation`/`clearCategoryAllocation`/`setTaskAmountPaid`/`setTaskEstimatedCost`, ownership-scoped) + the Phase 3 `setTaskStatus` extended to capture a **skippable paid amount on completion**; admin CMS actions (`admin-budget.ts`, live-DB `ADMIN`-gated, parametrized non-admin `FORBIDDEN` + export-parity reflection); couple `/budget` UI (RSC loader wiring rollup→optimizer→gift, inline-editable total, gift estimator with surplus/shortfall delta, category breakdown with recommended/committed/open + pin/unpin + over-budget/headroom feedback); the checklist completion paid-amount prompt + paid badge; minimal `ADMIN` `/admin/budget-templates` CMS (percent editor + live active-sum indicator) + nav link; dashboard budget card (nudge when no budget, real committed-vs-total summary otherwise); `e2e/budget.spec.ts` (set-budget → complete-task-with-paid → verify it rolls into that category's committed total; logged-out redirect).
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **232 unit + 13 e2e** — all green. 12/12 acceptance criteria. (Final whole-branch review: **ready to merge with fixes**, no Critical/Important beyond the dashboard fix, which was applied in `31c1499`.)
+
+**Key decisions / deviations:**
+- **Tasks *are* the budget line items** — no parallel expense table. `committed` per category is **derived** (Σ `amountPaid` of DONE, non-deleted tasks), never stored, so revising a paid amount (the "swapped the DJ" case) instantly re-rolls the whole optimization; re-opening a task returns its money to the open pool. The only new per-couple table is `BudgetAllocation` (manual pins).
+- **Deterministic water-filling optimizer, not AI.** Baseline % × priority boost, `committed` as a hard floor, pins fixed at `max(pin, committed)`, concept `[min,max]` as soft-floor/hard-ceiling on the open portion, largest-remainder rounding so category totals sum exactly to `budgetTotal`. Feedback = one of `ok`/`over_budget`(shortfall+underfunded)/`headroom`/`committed_overrun`. AI-driven optimization stays **Phase 10**.
+- **Three allocation signals, all optional** — the engine degrades: no concept → no clamps; no priorities → no boost; baseline always present. Post-review hardening added `conceptRanges` categories to the allocation universe so a concept's cost in an admin-deactivated category isn't silently dropped.
+- **Paid amount on completion is optional/skippable**; validated (reject fractional/negative, `≤100M`) through the shared `taskAmountInput` Zod schema — the same schema both paid-amount entry points use (a post-review fix unified them; the checklist path had been truncating instead of rejecting).
+- **Priority→category** is a fixed documented map (`FOOD→CATERING`, `PARTY→MUSIC`, `PHOTOGRAPHY→PHOTOGRAPHY`, `GUEST_EXPERIENCE→GUESTS`, `DESIGN→{DESIGN,FLOWERS}`, `FASHION→ATTIRE`), ×1.5 per matched priority.
+- **Gift estimator** = `avgGiftPerGuest × guestCount`, net surplus/shortfall vs the total — a helper to size the budget, not part of the optimizer.
+- **Baseline % is an admin-editable master** (chosen over a code constant) for consistency with the Phase 3/4 admin-master pattern; the optimizer normalizes by the active-weight sum, so it stays correct even if the percentages don't total 100.
+
+**Regressions the e2e caught (fixed in `2f21a13`):**
+- **Two `lib/actions/budget.ts` Server Action exports were non-async** (the plan's own code wrote them that way) — Next.js 16 rejects non-async exports from a `'use server'` module at **build time**, silently breaking all of `/budget`. Invisible to unit tests + typecheck; only a real build/e2e surfaced it. All six exports are now `async`. *(Lesson: a `'use server'` file requires every export to be an async function — worth a lint rule or CI build step, since unit tests import the functions directly and never hit the boundary.)*
+- **`e2e/checklist.spec.ts` was stale** against the new completion prompt (didn't dismiss it) — updated to click "Skip", completion assertion intact.
+
+---
+
 ## Deferred follow-ups backlog (non-blocking)
 
 Nothing here blocks any merge. Grouped for future phases/cleanups.
@@ -119,7 +141,13 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 - **JWT callback inline casts** (P1): augment the `authorize` User return type to catch field-rename typos at compile time.
 - **Concept-child cuid churn on reseed** (P3, Phase 4): `deleteMany`+`createMany` regenerates `ConceptImage`/`ConceptElement` cuids on every `db:seed` run; a pushed `Task.sourceConceptElementId` referencing a re-seeded element id would go stale after a reseed. Mitigated by `elementToTaskPayload` snapshotting the title/category (not just the id) — no user-visible bug, just a provenance-tracing limitation in dev.
 - **Image-upload flow deferred** (Phase 4 non-goal, tracked for a later phase): vision-board photos are admin-pasted URL references; the `ConceptImage` schema (`url` + alt text + `sortOrder`) is upload-ready, so a drag-drop uploader (e.g. Cloudflare R2) is purely additive whenever it's prioritized.
-- **Budget optimization consuming concepts** (Phase 5): `ConceptElement.estCostMin`/`estCostMax` + `category` are modeled now so Phase 5 can sum/weight the selected concept's ideas; no budget logic exists yet.
+- ~~**Budget optimization consuming concepts** (Phase 5)~~ **DONE** in Phase 5 — the optimizer sums the selected concept's `estCostMin`/`estCostMax` by category into floor/ceiling clamps (`sumConceptRanges` + `optimizeBudget`).
+- **Unwired-but-shipped budget surface** (P5): `setTaskAmountPaid`/`setTaskEstimatedCost`, the `planned` half of `rollupTasks`, and the concept-midpoint `estimatedCost` seeding are implemented + tested but have no UI consumer yet — reserved for a future per-task budget editor. Wire when that editor is built.
+- **Older admin PAGE loaders gate on stale JWT role** (P3/P4): `admin/checklist-templates/page.tsx` + `admin/concepts/page.tsx` redirect based on `session.user.role` (JWT), not a live-DB read — a stale-JWT demoted admin can *view* (not mutate — mutations re-check live DB) those pages. Phase 5's `admin/budget-templates/page.tsx` does it right; back-port the live-DB read to the two older loaders.
+- **Orphan i18n keys** (P5): `Budget.currencySymbol/spentAbovePin/taskPaidLabel/taskEstimateLabel` + `AdminBudget.categoryLabel/orderLabel` are defined (he+en) but unused; prune or wire.
+- **Reopen→skip→recomplete keeps old `amountPaid`** (P5): re-opening a DONE task leaves its paid amount; re-completing via "Skip" (null) doesn't clear it, so it silently returns to committed, and the prompt doesn't prefill the prior value. Edge-case UX.
+- **`admin-concepts.test.ts` lacks export-parity reflection** (P4): back-port the `admin-budget.test.ts` `Object.keys(module)` parity assertion so a new ungated admin-concepts export can't slip the non-admin gate.
+- **`e2e/budget.spec.ts` selector brittleness** (P5): keys off `getByRole('spinbutton').first()`, which only works because skipped onboarding leaves `guestCount` null; add a `data-testid` before the flow grows a second number input.
 - **Vendor recommendations per idea** (Phase 6): not started; concept ideas are the anchor Phase 6 will hang recommendations off.
 - **Premium paywall enforcement** (Phase 9): `Concept.isPremium` renders a badge only; every couple can currently open/select premium concepts. Real gating arrives with payments.
 
@@ -127,5 +155,5 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 
 ## Roadmap position
 
-Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts).
-Next: **Phase 5 — Budget Planning** (consumes the selected concept's idea cost ranges). Then Vendor Database (6), Dashboard (7), Admin Panel (8), Premium/Payments (9, enforces `isPremium`), AI Multi-Agent Layer (10).
+Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization).
+Next: **Phase 6 — Vendor Database** (recommendations per concept idea + vendor quotes). Then Dashboard (7), Admin Panel (8), Premium/Payments (9, enforces `isPremium` + real transactions), AI Multi-Agent Layer (10, AI-driven budget optimization on top of Phase 5's engine).
