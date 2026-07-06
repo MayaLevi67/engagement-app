@@ -84,4 +84,14 @@ describe('authorizeRoute', () => {
     expect(authorizeRoute({ pathname: '/concepts', isLoggedIn: true, role: 'USER' }))
       .toEqual({ type: 'next' });
   });
+
+  it('redirects logged-out users away from /budget', () => {
+    expect(authorizeRoute({ pathname: '/budget', isLoggedIn: false, role: null }))
+      .toEqual({ type: 'redirect', to: '/login' });
+  });
+
+  it('allows logged-in users to reach /budget', () => {
+    expect(authorizeRoute({ pathname: '/budget', isLoggedIn: true, role: 'USER' }))
+      .toEqual({ type: 'next' });
+  });
 });

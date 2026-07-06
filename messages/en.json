@@ -30,7 +30,11 @@
     "placeholder": "Dashboard (protected)",
     "chooseConceptTitle": "Choose your wedding concept",
     "chooseConceptBody": "Pick a style that speaks to you and shape your day around it.",
-    "chooseConceptCta": "Browse concepts"
+    "chooseConceptCta": "Browse concepts",
+    "budgetTitle": "Plan your budget",
+    "budgetBody": "Set a total and let us split it across your categories.",
+    "budgetCta": "Open budget",
+    "budgetSummary": "Budget: {committed} committed of {total}"
   },
   "Admin": { "placeholder": "Admin area (admins only)" },
   "AdminTemplates": {
@@ -164,7 +168,11 @@
     "reminderOff": "Reminder off",
     "edit": "Edit",
     "delete": "Delete",
-    "error": "Something went wrong. Please try again"
+    "error": "Something went wrong. Please try again",
+    "paidPrompt": "How much did you pay? (optional)",
+    "paidSkip": "Skip",
+    "paidSave": "Save",
+    "paidLabel": "Paid {amount}"
   },
   "TaskCategory": {
     "VENUE": "Venue",
@@ -235,5 +243,49 @@
     "delete": "Delete",
     "edit": "Edit",
     "error": "Something went wrong."
+  },
+  "Budget": {
+    "title": "Budget",
+    "subtitle": "Plan and optimize your wedding budget",
+    "totalLabel": "Total budget",
+    "setTotalCta": "Set budget",
+    "editTotalCta": "Edit",
+    "noBudget": "Set a total budget to see your category plan.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "currencySymbol": "₪",
+    "giftTitle": "Estimated gifts",
+    "giftAvgLabel": "Average gift per guest",
+    "giftGuestsLabel": "Guests",
+    "giftTotalLabel": "Estimated gift total",
+    "giftSurplus": "Estimated surplus",
+    "giftShortfall": "Estimated shortfall",
+    "giftNeedsGuests": "Add a guest count in your wedding profile to estimate gifts.",
+    "breakdownTitle": "Category plan",
+    "recommended": "Recommended",
+    "committed": "Committed",
+    "open": "Open",
+    "pinCta": "Pin",
+    "pinnedLabel": "Pinned",
+    "unpinCta": "Unpin",
+    "overBudget": "Your plan is over budget by {amount}. Underfunded: {categories}.",
+    "headroom": "You have {amount} unallocated.",
+    "committedOverrun": "You've already committed {amount} over your total budget.",
+    "spentAbovePin": "Spent above your pinned amount here.",
+    "taskPaidLabel": "Paid",
+    "taskEstimateLabel": "Estimated",
+    "error": "Something went wrong. Please try again."
+  },
+  "AdminBudget": {
+    "title": "Budget Baseline",
+    "subtitle": "Default percentage split applied to every couple's budget",
+    "categoryLabel": "Category",
+    "percentLabel": "Percent",
+    "activeLabel": "Active",
+    "orderLabel": "Order",
+    "sumOk": "Active percentages total {sum}%.",
+    "sumWarn": "Active percentages total {sum}% (should be 100%).",
+    "save": "Save",
+    "error": "Something went wrong. Please try again."
   }
 }
