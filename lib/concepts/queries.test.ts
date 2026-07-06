@@ -20,6 +20,7 @@ describe('elementToTaskPayload', () => {
       dueOffsetDays: null,
       isCustom: true,
       sourceConceptElementId: 'el1',
+      estimatedCost: 10000,
       sortOrder: 42,
     });
   });

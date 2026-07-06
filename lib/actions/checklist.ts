@@ -34,15 +34,27 @@ async function loadOwnedTask(userId: string, taskId: string): Promise<Task | nul
   return task;
 }
 
-export async function setTaskStatus(taskId: string, done: boolean): Promise<ActionResult> {
+export async function setTaskStatus(
+  taskId: string,
+  done: boolean,
+  amountPaid?: number | null,
+): Promise<ActionResult> {
   const userId = await requireUserId();
   if (!userId) return { ok: false, error: 'UNAUTHENTICATED' };
   const task = await loadOwnedTask(userId, taskId);
   if (!task) return { ok: false, error: 'NOT_FOUND' };
+  // A paid amount is only meaningful when completing; ignore it when re-opening.
+  const paid =
+    done && amountPaid !== undefined && amountPaid !== null
+      ? Math.trunc(amountPaid)
+      : undefined;
+  if (paid !== undefined && (!Number.isInteger(paid) || paid < 0)) {
+    return { ok: false, error: 'INVALID' };
+  }
   await prisma.task.update({
     where: { id: task.id },
     data: done
-      ? { status: 'DONE', completedAt: new Date() }
+      ? { status: 'DONE', completedAt: new Date(), ...(paid !== undefined ? { amountPaid: paid } : {}) }
       : { status: 'OPEN', completedAt: null },
   });
   return { ok: true };

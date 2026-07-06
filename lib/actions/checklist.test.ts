@@ -262,3 +262,49 @@ describe('cross-tenant ownership isolation', () => {
     expect(await setTaskStatus('nonexistent-id', true)).toEqual({ ok: false, error: 'NOT_FOUND' });
   });
 });
+
+describe('setTaskStatus with amountPaid', () => {
+  it('records the paid amount when completing', async () => {
+    const { userId, weddingId } = await makeUserWithWedding('r@example.com');
+    currentUserId = userId;
+    const task = await makeTask(weddingId);
+
+    expect(await setTaskStatus(task.id, true, 10000)).toEqual({ ok: true });
+    const after = await prisma.task.findUnique({ where: { id: task.id } });
+    expect(after?.status).toBe('DONE');
+    expect(after?.amountPaid).toBe(10000);
+  });
+
+  it('ignores a paid amount when re-opening', async () => {
+    const { userId, weddingId } = await makeUserWithWedding('s@example.com');
+    currentUserId = userId;
+    const task = await makeTask(weddingId, { status: 'DONE', completedAt: new Date(), amountPaid: 5000 });
+
+    expect(await setTaskStatus(task.id, false, 10000)).toEqual({ ok: true });
+    const after = await prisma.task.findUnique({ where: { id: task.id } });
+    expect(after?.status).toBe('OPEN');
+    expect(after?.amountPaid).toBe(5000);
+  });
+
+  it('skips amount capture when none is provided', async () => {
+    const { userId, weddingId } = await makeUserWithWedding('t@example.com');
+    currentUserId = userId;
+    const task = await makeTask(weddingId);
+
+    expect(await setTaskStatus(task.id, true)).toEqual({ ok: true });
+    const after = await prisma.task.findUnique({ where: { id: task.id } });
+    expect(after?.status).toBe('DONE');
+    expect(after?.amountPaid).toBeNull();
+  });
+
+  it('rejects a negative paid amount and leaves the task untouched', async () => {
+    const { userId, weddingId } = await makeUserWithWedding('u@example.com');
+    currentUserId = userId;
+    const task = await makeTask(weddingId);
+
+    expect(await setTaskStatus(task.id, true, -50)).toEqual({ ok: false, error: 'INVALID' });
+    const after = await prisma.task.findUnique({ where: { id: task.id } });
+    expect(after?.status).toBe('OPEN');
+    expect(after?.amountPaid).toBeNull();
+  });
+});
