@@ -87,10 +87,10 @@ async function updateOwnedTaskAmount(
   return { ok: true };
 }
 
-export function setTaskAmountPaid(taskId: string, amount: number | null): Promise<BudgetActionResult> {
+export async function setTaskAmountPaid(taskId: string, amount: number | null): Promise<BudgetActionResult> {
   return updateOwnedTaskAmount(taskId, 'amountPaid', amount);
 }
 
-export function setTaskEstimatedCost(taskId: string, amount: number | null): Promise<BudgetActionResult> {
+export async function setTaskEstimatedCost(taskId: string, amount: number | null): Promise<BudgetActionResult> {
   return updateOwnedTaskAmount(taskId, 'estimatedCost', amount);
 }
