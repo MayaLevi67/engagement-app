@@ -103,6 +103,25 @@ describe('optimizeBudget', () => {
     expect(r.feedback).toEqual({ type: 'ok' });
   });
 
+  it('reserves a concept-range category the active baseline omits', () => {
+    // Baseline has no FLOWERS, but the chosen concept puts a 5k–8k range on it.
+    // FLOWERS must appear and get its 5k min as a floor. R = 100k, floors sum 5k,
+    // leftover 95k splits 50/50 across VENUE/CATERING (FLOWERS weight 0) → 47500 each.
+    const r = optimizeBudget(base({
+      budgetTotal: 100000,
+      baseline: { VENUE: 50, CATERING: 50 },
+      conceptRanges: { FLOWERS: { min: 5000, max: 8000 } },
+    }));
+    const flowers = alloc(r, 'FLOWERS');
+    expect(flowers).toBeDefined();
+    expect(flowers.recommended).toBe(5000);
+    expect(flowers.recommended).toBeGreaterThanOrEqual(5000);
+    expect(alloc(r, 'VENUE').recommended).toBe(47500);
+    expect(alloc(r, 'CATERING').recommended).toBe(47500);
+    expect(r.perCategory.reduce((s, p) => s + p.recommended, 0)).toBe(100000);
+    expect(r.feedback).toEqual({ type: 'ok' });
+  });
+
   it('always sums the category recommendations to the budget when feasible (rounding case)', () => {
     // 3-way split of 100000 by equal weight → 33334/33333/33333.
     const r = optimizeBudget(base({

@@ -61,11 +61,13 @@ export function optimizeBudget(input: OptimizeInput): OptimizeResult {
   const baseline = input.baseline ?? {};
   const conceptRanges = input.conceptRanges ?? {};
 
-  // Category universe: active baseline ∪ committed>0 ∪ pinned (money is never hidden).
+  // Category universe: active baseline ∪ committed>0 ∪ pinned ∪ conceptRanges (money is never hidden,
+  // and a chosen concept's cost must be reserved even if the active baseline template omits its category).
   const universe = new Set<TaskCategory>();
   (Object.keys(baseline) as TaskCategory[]).forEach((c) => universe.add(c));
   (Object.keys(committed) as TaskCategory[]).forEach((c) => { if ((committed[c] ?? 0) > 0) universe.add(c); });
   (Object.keys(pinned) as TaskCategory[]).forEach((c) => universe.add(c));
+  (Object.keys(conceptRanges) as TaskCategory[]).forEach((c) => universe.add(c));
 
   const com = (c: TaskCategory) => Math.max(0, committed[c] ?? 0);
   const ceilingTotal = (c: TaskCategory): number | null => {
