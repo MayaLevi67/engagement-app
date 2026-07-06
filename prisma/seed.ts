@@ -1,3 +1,4 @@
+import { TaskCategory } from '@prisma/client';
 import { prisma } from '../lib/db';
 
 type TemplateSeed = {
@@ -205,7 +206,7 @@ const concepts: ConceptSeed[] = [
   },
 ];
 
-const budgetBaseline: { category: string; defaultPercent: number; sortOrder: number }[] = [
+const budgetBaseline: { category: TaskCategory; defaultPercent: number; sortOrder: number }[] = [
   { category: 'VENUE', defaultPercent: 20, sortOrder: 10 },
   { category: 'CATERING', defaultPercent: 25, sortOrder: 20 },
   { category: 'PHOTOGRAPHY', defaultPercent: 10, sortOrder: 30 },
@@ -282,8 +283,8 @@ async function main() {
 
   for (const b of budgetBaseline) {
     await prisma.budgetTemplate.upsert({
-      where: { category: b.category as never },
-      create: { category: b.category as never, defaultPercent: b.defaultPercent, active: true, sortOrder: b.sortOrder },
+      where: { category: b.category },
+      create: { category: b.category, defaultPercent: b.defaultPercent, active: true, sortOrder: b.sortOrder },
       update: { defaultPercent: b.defaultPercent, active: true, sortOrder: b.sortOrder },
     });
   }
