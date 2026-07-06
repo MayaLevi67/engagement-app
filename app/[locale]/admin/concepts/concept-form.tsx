@@ -58,10 +58,12 @@ export interface SerializedAdminConcept {
 export function ConceptForm({
   concept,
   onSaved,
+  onNestedChange,
   onCancel,
 }: {
   concept: SerializedAdminConcept | null;
   onSaved: () => void;
+  onNestedChange: () => void;
   onCancel: () => void;
 }) {
   const t = useTranslations('AdminConcepts');
@@ -223,7 +225,7 @@ export function ConceptForm({
       </div>
 
       {concept ? (
-        <NestedEditors concept={concept} onChanged={onSaved} tCategory={tCategory} t={t} />
+        <NestedEditors concept={concept} onChanged={onNestedChange} tCategory={tCategory} t={t} />
       ) : (
         <p className="text-xs text-muted">
           {t('save')} {SAVE_THEN_ARROW} {t('addElement')} / {t('addImage')}

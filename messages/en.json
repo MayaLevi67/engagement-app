@@ -218,6 +218,7 @@
     "palette": "Palette (hex, comma-separated)",
     "premium": "Premium",
     "active": "Active",
+    "inactiveLabel": "inactive",
     "sortOrder": "Sort order",
     "images": "Vision board images",
     "imageUrl": "Image URL",

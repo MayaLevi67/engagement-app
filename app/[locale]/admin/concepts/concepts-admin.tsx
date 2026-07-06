@@ -8,20 +8,21 @@ import { deleteConcept } from '@/lib/actions/admin-concepts';
 
 export type { SerializedAdminConcept };
 
-function conceptLabel(c: SerializedAdminConcept): string {
+function conceptLabel(c: SerializedAdminConcept, t: ReturnType<typeof useTranslations>): string {
   const premiumSuffix = c.isPremium ? ' · ★' : '';
-  const inactiveSuffix = c.active ? '' : ' · (inactive)';
+  const inactiveSuffix = c.active ? '' : ` · ${t('inactiveLabel')}`;
   return `${c.title_en} / ${c.title_he}${premiumSuffix}${inactiveSuffix}`;
 }
 
 export function ConceptsAdmin({ concepts }: { concepts: SerializedAdminConcept[] }) {
   const t = useTranslations('AdminConcepts');
   const router = useRouter();
-  const [editing, setEditing] = useState<SerializedAdminConcept | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const editing = concepts.find((c) => c.id === editingId) ?? null;
 
   function refresh() {
-    setEditing(null);
+    setEditingId(null);
     setCreating(false);
     router.refresh();
   }
@@ -34,7 +35,7 @@ export function ConceptsAdmin({ concepts }: { concepts: SerializedAdminConcept[]
           type="button"
           onClick={() => {
             setCreating(true);
-            setEditing(null);
+            setEditingId(null);
           }}
           className="rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
         >
@@ -42,21 +43,33 @@ export function ConceptsAdmin({ concepts }: { concepts: SerializedAdminConcept[]
         </button>
       </header>
 
-      {creating ? <ConceptForm concept={null} onSaved={refresh} onCancel={() => setCreating(false)} /> : null}
+      {creating ? (
+        <ConceptForm
+          concept={null}
+          onSaved={refresh}
+          onNestedChange={() => router.refresh()}
+          onCancel={() => setCreating(false)}
+        />
+      ) : null}
 
       <ul className="flex flex-col gap-2">
         {concepts.map((c) => (
           <li key={c.id} className="rounded-card bg-surface p-3">
             {editing?.id === c.id ? (
-              <ConceptForm concept={c} onSaved={refresh} onCancel={() => setEditing(null)} />
+              <ConceptForm
+                concept={editing}
+                onSaved={refresh}
+                onNestedChange={() => router.refresh()}
+                onCancel={() => setEditingId(null)}
+              />
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-text">{conceptLabel(c)}</span>
+                <span className="text-sm text-text">{conceptLabel(c, t)}</span>
                 <span className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setEditing(c);
+                      setEditingId(c.id);
                       setCreating(false);
                     }}
                     className="text-sm text-muted"
