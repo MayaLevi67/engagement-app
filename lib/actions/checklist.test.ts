@@ -307,4 +307,15 @@ describe('setTaskStatus with amountPaid', () => {
     expect(after?.status).toBe('OPEN');
     expect(after?.amountPaid).toBeNull();
   });
+
+  it('rejects a fractional paid amount and leaves the task untouched', async () => {
+    const { userId, weddingId } = await makeUserWithWedding('v@example.com');
+    currentUserId = userId;
+    const task = await makeTask(weddingId);
+
+    expect(await setTaskStatus(task.id, true, 10000.5)).toEqual({ ok: false, error: 'INVALID' });
+    const after = await prisma.task.findUnique({ where: { id: task.id } });
+    expect(after?.status).toBe('OPEN');
+    expect(after?.amountPaid).toBeNull();
+  });
 });
