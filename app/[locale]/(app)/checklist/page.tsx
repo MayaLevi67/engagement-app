@@ -22,6 +22,8 @@ function serializeTask(task: Task): SerializedTask {
     reminderEnabled: task.reminderEnabled,
     remindAt: task.remindAt ? task.remindAt.toISOString() : null,
     notes: task.notes,
+    estimatedCost: task.estimatedCost,
+    amountPaid: task.amountPaid,
     deletedAt: task.deletedAt ? task.deletedAt.toISOString() : null,
   };
 }

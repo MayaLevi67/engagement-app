@@ -23,6 +23,8 @@ export interface SerializedTask {
   reminderEnabled: boolean;
   remindAt: string | null;
   notes: string | null;
+  estimatedCost: number | null;
+  amountPaid: number | null;
   deletedAt: string | null;
 }
 

@@ -41,6 +41,8 @@ const tasks: SerializedTask[] = [
     reminderEnabled: false,
     remindAt: null,
     notes: null,
+    estimatedCost: null,
+    amountPaid: null,
     deletedAt: null,
   },
   {
@@ -57,6 +59,8 @@ const tasks: SerializedTask[] = [
     reminderEnabled: false,
     remindAt: null,
     notes: null,
+    estimatedCost: null,
+    amountPaid: null,
     deletedAt: null,
   },
 ];
@@ -92,14 +96,28 @@ describe('ChecklistView', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls setTaskStatus when a task checkbox is clicked', async () => {
+  it('opens the paid-amount prompt and calls setTaskStatus when skipped', async () => {
     renderView();
 
     const checkbox = screen.getByRole('checkbox', { name: 'Book venue' });
     fireEvent.click(checkbox);
 
+    const skipButton = screen.getByRole('button', { name: en.Checklist.paidSkip });
+    fireEvent.click(skipButton);
+
     await waitFor(() => {
-      expect(setTaskStatus).toHaveBeenCalledWith('task-1', true);
+      expect(setTaskStatus).toHaveBeenCalledWith('task-1', true, null);
+    });
+  });
+
+  it('re-opening a done task toggles directly without the prompt', async () => {
+    renderView();
+
+    const checkbox = screen.getByRole('checkbox', { name: 'Book photographer' });
+    fireEvent.click(checkbox);
+
+    await waitFor(() => {
+      expect(setTaskStatus).toHaveBeenCalledWith('task-2', false);
     });
   });
 
