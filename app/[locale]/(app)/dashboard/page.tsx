@@ -30,6 +30,26 @@ export default async function DashboardPage({
           </Link>
         </section>
       ) : null}
+
+      <section className="rounded-card bg-surface p-5">
+        <h2 className="font-display text-lg text-text">{t('budgetTitle')}</h2>
+        {wedding?.budgetTotal == null ? (
+          <p className="mt-1 text-sm text-muted">{t('budgetBody')}</p>
+        ) : (
+          <p className="mt-1 text-sm text-muted">
+            {t('budgetSummary', {
+              committed: `₪${(0).toLocaleString(locale)}`,
+              total: `₪${wedding.budgetTotal.toLocaleString(locale)}`,
+            })}
+          </p>
+        )}
+        <Link
+          href="/budget"
+          className="mt-3 inline-block rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
+        >
+          {t('budgetCta')}
+        </Link>
+      </section>
     </main>
   );
 }
