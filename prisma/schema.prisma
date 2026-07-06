@@ -104,6 +104,10 @@ model Wedding {
   tasks         Task[]
   tasksSeededAt DateTime?
 
+  selectedConceptId String?
+  selectedConcept   Concept?          @relation(fields: [selectedConceptId], references: [id], onDelete: SetNull)
+  favorites         ConceptFavorite[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -177,6 +181,7 @@ model Task {
 
   isCustom          Boolean      @default(false)
   sourceTemplateId  String?      // provenance only; null on template delete
+  sourceConceptElementId String?
 
   reminderEnabled   Boolean      @default(false)
   remindAt          DateTime?
@@ -189,4 +194,69 @@ model Task {
   updatedAt         DateTime     @updatedAt
 
   @@index([weddingId, deletedAt])
+}
+
+model Concept {
+  id             String       @id @default(cuid())
+  title_en       String
+  title_he       String
+  titleLocale    TitleLocale  @default(AUTO)
+  tagline_en     String?
+  tagline_he     String?
+  description_en String?
+  description_he String?
+  palette        String[]
+  isPremium      Boolean      @default(false)
+  active         Boolean      @default(true)
+  sortOrder      Int          @default(0)
+
+  images      ConceptImage[]
+  elements    ConceptElement[]
+  favoritedBy ConceptFavorite[]
+  selectedBy  Wedding[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ConceptImage {
+  id        String  @id @default(cuid())
+  conceptId String
+  concept   Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  url       String
+  alt_en    String?
+  alt_he    String?
+  sortOrder Int     @default(0)
+
+  @@index([conceptId])
+}
+
+model ConceptElement {
+  id             String       @id @default(cuid())
+  conceptId      String
+  concept        Concept      @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  title_en       String
+  title_he       String
+  titleLocale    TitleLocale  @default(AUTO)
+  description_en String?
+  description_he String?
+  category       TaskCategory
+  estCostMin     Int?
+  estCostMax     Int?
+  active         Boolean      @default(true)
+  sortOrder      Int          @default(0)
+
+  @@index([conceptId])
+}
+
+model ConceptFavorite {
+  id        String   @id @default(cuid())
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  conceptId String
+  concept   Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([weddingId, conceptId])
+  @@index([weddingId])
 }

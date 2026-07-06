@@ -74,4 +74,14 @@ describe('authorizeRoute', () => {
     expect(authorizeRoute({ pathname: '/checklist', isLoggedIn: true, role: 'USER' }))
       .toEqual({ type: 'next' });
   });
+
+  it('redirects logged-out users away from /concepts', () => {
+    expect(authorizeRoute({ pathname: '/concepts', isLoggedIn: false, role: null }))
+      .toEqual({ type: 'redirect', to: '/login' });
+  });
+
+  it('allows logged-in users to reach /concepts', () => {
+    expect(authorizeRoute({ pathname: '/concepts', isLoggedIn: true, role: 'USER' }))
+      .toEqual({ type: 'next' });
+  });
 });

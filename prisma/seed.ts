@@ -94,6 +94,117 @@ const templates: TemplateSeed[] = [
   { id: 'tmpl-other-thankyou', title_en: 'Prepare thank-you cards for guests', title_he: 'להכין גלויות תודה לאורחים', category: 'OTHER', priority: 'LOW', dueOffsetDays: null, sortOrder: 440 },
 ];
 
+type ElementSeed = {
+  title_en: string;
+  title_he: string;
+  description_en: string;
+  description_he: string;
+  category:
+    | 'VENUE' | 'CATERING' | 'PHOTOGRAPHY' | 'MUSIC' | 'ATTIRE' | 'DESIGN'
+    | 'FLOWERS' | 'GUESTS' | 'CEREMONY' | 'PLANNING' | 'BUDGET' | 'OTHER';
+  estCostMin: number | null;
+  estCostMax: number | null;
+  sortOrder: number;
+};
+
+type ConceptSeed = {
+  id: string;
+  title_en: string;
+  title_he: string;
+  tagline_en: string;
+  tagline_he: string;
+  description_en: string;
+  description_he: string;
+  palette: string[];
+  isPremium: boolean;
+  sortOrder: number;
+  images: { url: string; alt_en: string; alt_he: string; sortOrder: number }[];
+  elements: ElementSeed[];
+};
+
+const concepts: ConceptSeed[] = [
+  {
+    id: 'concept-party-time',
+    title_en: 'Party Time',
+    title_he: 'מסיבה בלי סוף',
+    tagline_en: 'Dance floor first, everything else second',
+    tagline_he: 'רחבת ריקודים במרכז, כל השאר מסביב',
+    description_en: 'A high-energy celebration built around the music and the crowd — two DJs, bold lighting, and a late-night set that keeps everyone dancing.',
+    description_he: 'חגיגה אנרגטית שנבנית סביב המוזיקה והקהל — שני תקליטנים, תאורה נועזת וסט אחרי-חצות שמשאיר את כולם על הרחבה.',
+    palette: ['#1C1C1C', '#E4007C', '#00E0FF', '#FFD400'],
+    isPremium: false,
+    sortOrder: 10,
+    images: [
+      { url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819', alt_en: 'Wedding dance floor at night', alt_he: 'רחבת ריקודים בחתונה בלילה', sortOrder: 0 },
+    ],
+    elements: [
+      { title_en: 'Two DJs — mainstream + techno after-party', title_he: 'שני תקליטנים — מיינסטרים ואפטר טכנו', description_en: 'One DJ for the main set, a second for the late-night techno after-party.', description_he: 'תקליטן אחד לסט המרכזי, שני לאפטר טכנו של אחרי חצות.', category: 'MUSIC', estCostMin: 6000, estCostMax: 14000, sortOrder: 10 },
+      { title_en: 'Extra party lighting & effects', title_he: 'תאורת מסיבה ואפקטים', description_en: 'Moving heads, lasers and haze to turn the room into a club.', description_he: 'ראשים נעים, לייזרים ועשן שהופכים את החלל למועדון.', category: 'DESIGN', estCostMin: 4000, estCostMax: 9000, sortOrder: 20 },
+      { title_en: 'Sunglasses station for the techno set', title_he: 'עמדת משקפי שמש לסט הטכנו', description_en: 'A styled station of sunglasses guests grab for the after-party.', description_he: 'עמדה מעוצבת של משקפי שמש שהאורחים לוקחים לאפטר.', category: 'OTHER', estCostMin: 800, estCostMax: 2000, sortOrder: 30 },
+    ],
+  },
+  {
+    id: 'concept-italian-summer',
+    title_en: 'Italian Summer',
+    title_he: 'קיץ איטלקי',
+    tagline_en: 'Lemons, linen and golden light',
+    tagline_he: 'לימונים, פשתן ואור זהוב',
+    description_en: 'A sun-drenched garden celebration — long linen tables, citrus and olive branches, and a relaxed al-fresco feast.',
+    description_he: 'חגיגה בגן שטופת שמש — שולחנות פשתן ארוכים, ענפי הדרים וזית, וסעודה נינוחה בחוץ.',
+    palette: ['#FFFFFF', '#6E8B3D', '#E7B10A', '#F2E8CF'],
+    isPremium: true,
+    sortOrder: 20,
+    images: [
+      { url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed', alt_en: 'Outdoor garden wedding table', alt_he: 'שולחן חתונה בגן פתוח', sortOrder: 0 },
+    ],
+    elements: [
+      { title_en: 'Long linen banquet tables', title_he: 'שולחנות בנקט ארוכים מפשתן', description_en: 'Family-style seating on long tables with natural linen.', description_he: 'ישיבה משפחתית סביב שולחנות ארוכים עם פשתן טבעי.', category: 'DESIGN', estCostMin: 5000, estCostMax: 12000, sortOrder: 10 },
+      { title_en: 'Citrus & olive branch centerpieces', title_he: 'מרכזי שולחן מהדרים וענפי זית', description_en: 'Lemons, olive branches and wildflowers down the table.', description_he: 'לימונים, ענפי זית ופרחי בר לאורך השולחן.', category: 'FLOWERS', estCostMin: 3000, estCostMax: 8000, sortOrder: 20 },
+      { title_en: 'Al-fresco antipasti table', title_he: 'שולחן אנטיפסטי בחוץ', description_en: 'A grazing table of Italian antipasti as guests arrive.', description_he: 'שולחן אנטיפסטי איטלקי לקבלת הפנים.', category: 'CATERING', estCostMin: 4000, estCostMax: 10000, sortOrder: 30 },
+    ],
+  },
+  {
+    id: 'concept-old-money',
+    title_en: 'Old Money',
+    title_he: 'אלגנטיות קלאסית',
+    tagline_en: 'Timeless, heirloom, effortlessly grand',
+    tagline_he: 'נצחי, מסורתי, מפואר בטבעיות',
+    description_en: 'Understated luxury — heirloom details, a muted palette and classic florals for a wedding that feels inherited, not bought.',
+    description_he: 'יוקרה מאופקת — פרטים מסורתיים, פלטה עמומה ופרחים קלאסיים לחתונה שמרגישה מורשת, לא קנויה.',
+    palette: ['#7A1F2B', '#C9A227', '#F5F0E6', '#1F3D2B'],
+    isPremium: true,
+    sortOrder: 30,
+    images: [
+      { url: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6', alt_en: 'Elegant classic wedding setup', alt_he: 'הפקת חתונה קלאסית ואלגנטית', sortOrder: 0 },
+    ],
+    elements: [
+      { title_en: 'Classic string quartet for the ceremony', title_he: 'רביעיית מיתרים קלאסית לטקס', description_en: 'A live string quartet during the ceremony and reception.', description_he: 'רביעיית מיתרים חיה בטקס ובקבלת הפנים.', category: 'MUSIC', estCostMin: 4000, estCostMax: 9000, sortOrder: 10 },
+      { title_en: 'Monochrome white florals in silver', title_he: 'פרחים לבנים מונוכרומטיים בכלי כסף', description_en: 'White roses and peonies in polished silver vessels.', description_he: 'ורדים ואדמוניות לבנות בכלי כסף מלוטשים.', category: 'FLOWERS', estCostMin: 6000, estCostMax: 15000, sortOrder: 20 },
+      { title_en: 'Engraved heirloom-style stationery', title_he: 'הזמנות מודפסות בסגנון מסורתי', description_en: 'Letterpress invitations and place cards with monogram.', description_he: 'הזמנות בהדפס בלט וכרטיסי מקום עם מונוגרמה.', category: 'DESIGN', estCostMin: 2000, estCostMax: 6000, sortOrder: 30 },
+    ],
+  },
+  {
+    id: 'concept-modern-luxury',
+    title_en: 'Modern Luxury',
+    title_he: 'יוקרה מודרנית',
+    tagline_en: 'Architectural, refined, unforgettable',
+    tagline_he: 'אדריכלי, מוקפד, בלתי נשכח',
+    description_en: 'Clean lines, statement florals and a monochrome palette punctuated by metallic accents — a wedding that feels like a private gallery opening.',
+    description_he: 'קווים נקיים, פרחים סטייטמנט ופלטה מונוכרומטית עם נגיעות מטאליות — חתונה שמרגישה כמו פתיחת גלריה פרטית.',
+    palette: ['#E8E8E8', '#C9A227', '#FFFFFF', '#1C1C1C'],
+    isPremium: true,
+    sortOrder: 40,
+    images: [
+      { url: 'https://images.unsplash.com/photo-1522413452208-996ff3f3e740', alt_en: 'Modern minimalist wedding table', alt_he: 'שולחן חתונה מודרני מינימליסטי', sortOrder: 0 },
+    ],
+    elements: [
+      { title_en: 'Monochrome white orchids in tall glass', title_he: 'סחלבים לבנים בכלי זכוכית גבוהים', description_en: 'Monochrome white orchids and anthurium in tall glass vessels.', description_he: 'סחלבים לבנים ואנתוריום בכלי זכוכית גבוהים.', category: 'FLOWERS', estCostMin: 7000, estCostMax: 16000, sortOrder: 10 },
+      { title_en: 'Sculptural installations & acrylic signage', title_he: 'מיצבים פיסוליים ושילוט אקרילי', description_en: 'Sculptural installations, acrylic signage and taper candles in brass holders.', description_he: 'מיצבים פיסוליים, שילוט אקרילי ונרות בכלי פליז.', category: 'DESIGN', estCostMin: 5000, estCostMax: 13000, sortOrder: 20 },
+      { title_en: 'Sleek minimalist gown', title_he: 'שמלה מינימליסטית מוקפדת', description_en: 'A sleek minimalist gown with architectural lines.', description_he: 'שמלה מינימליסטית עם קווים אדריכליים.', category: 'ATTIRE', estCostMin: 8000, estCostMax: 25000, sortOrder: 30 },
+    ],
+  },
+];
+
 async function main() {
   for (const t of templates) {
     await prisma.checklistTemplate.upsert({
@@ -123,6 +234,36 @@ async function main() {
   }
 
   console.log(`Seeded ${templates.length} checklist templates.`);
+
+  for (const c of concepts) {
+    await prisma.concept.upsert({
+      where: { id: c.id },
+      create: {
+        id: c.id,
+        title_en: c.title_en, title_he: c.title_he, titleLocale: 'AUTO',
+        tagline_en: c.tagline_en, tagline_he: c.tagline_he,
+        description_en: c.description_en, description_he: c.description_he,
+        palette: c.palette, isPremium: c.isPremium, active: true, sortOrder: c.sortOrder,
+      },
+      update: {
+        title_en: c.title_en, title_he: c.title_he, titleLocale: 'AUTO',
+        tagline_en: c.tagline_en, tagline_he: c.tagline_he,
+        description_en: c.description_en, description_he: c.description_he,
+        palette: c.palette, isPremium: c.isPremium, active: true, sortOrder: c.sortOrder,
+      },
+    });
+    // Replace child rows so a re-seed reflects the seed file exactly.
+    await prisma.conceptImage.deleteMany({ where: { conceptId: c.id } });
+    await prisma.conceptElement.deleteMany({ where: { conceptId: c.id } });
+    await prisma.conceptImage.createMany({
+      data: c.images.map((im) => ({ conceptId: c.id, ...im })),
+    });
+    await prisma.conceptElement.createMany({
+      data: c.elements.map((el) => ({ conceptId: c.id, titleLocale: 'AUTO', active: true, ...el })),
+    });
+  }
+
+  console.log(`Seeded ${concepts.length} wedding concepts.`);
 }
 
 main()
