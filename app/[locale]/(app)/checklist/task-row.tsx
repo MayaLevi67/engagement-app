@@ -26,6 +26,8 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [askingPaid, setAskingPaid] = useState(false);
+  const [paidInput, setPaidInput] = useState('');
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState<TaskCategory>(task.category);
   const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority);
@@ -43,15 +45,24 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
     setIsEditing(true);
   }
 
-  async function handleToggleDone() {
+  async function completeWith(amountPaid: number | null) {
     setError(false);
     setPending(true);
-    const result = await setTaskStatus(task.id, !done);
+    const result = await setTaskStatus(task.id, true, amountPaid);
     setPending(false);
-    if (!result.ok) {
-      setError(true);
-      return;
-    }
+    setAskingPaid(false);
+    setPaidInput('');
+    if (!result.ok) { setError(true); return; }
+    onChanged();
+  }
+
+  async function handleToggleDone() {
+    if (!done) { setAskingPaid(true); return; }
+    setError(false);
+    setPending(true);
+    const result = await setTaskStatus(task.id, false);
+    setPending(false);
+    if (!result.ok) { setError(true); return; }
     onChanged();
   }
 
@@ -213,6 +224,45 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
           {tPriority(task.priority)}
         </span>
       </div>
+
+      {askingPaid ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-card bg-background p-2">
+          <label className="text-xs text-muted" htmlFor={`paid-${task.id}`}>
+            {t('paidPrompt')}
+          </label>
+          <input
+            id={`paid-${task.id}`}
+            type="number"
+            min="0"
+            dir="ltr"
+            value={paidInput}
+            onChange={(e) => setPaidInput(e.target.value)}
+            className="w-28 rounded-card border border-muted/30 bg-surface px-2 py-1 text-sm text-text"
+          />
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => completeWith(paidInput === '' ? null : Math.trunc(Number(paidInput)))}
+            className="rounded-card bg-primary px-3 py-1 text-sm text-background disabled:opacity-60"
+          >
+            {t('paidSave')}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => completeWith(null)}
+            className="rounded-card border border-muted/30 px-3 py-1 text-sm text-text"
+          >
+            {t('paidSkip')}
+          </button>
+        </div>
+      ) : null}
+
+      {done && task.amountPaid != null ? (
+        <span className="text-xs text-muted">
+          {t('paidLabel', { amount: `₪${task.amountPaid.toLocaleString(locale)}` })}
+        </span>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
         <span>

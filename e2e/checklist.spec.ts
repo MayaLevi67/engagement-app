@@ -76,6 +76,11 @@ test.describe('checklist', () => {
     const firstCheckbox = page.getByRole('checkbox').first();
     await firstCheckbox.click();
 
+    // Completing a task now opens a skippable paid-amount prompt (Phase 5)
+    // instead of completing immediately; dismiss it via "Skip" to keep this
+    // test focused on the progress count.
+    await page.getByRole('button', { name: 'דילוג' }).click();
+
     // The checkbox is a controlled input driven by server state: it only
     // reflects `checked` once the server action resolves and the parent
     // re-fetches via router.refresh(), so wait for that round trip instead

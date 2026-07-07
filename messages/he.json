@@ -30,7 +30,11 @@
     "placeholder": "לוח בקרה (מוגן)",
     "chooseConceptTitle": "בחרו קונספט לחתונה",
     "chooseConceptBody": "בחרו סגנון שמדבר אליכם ועצבו סביבו את היום.",
-    "chooseConceptCta": "לספריית הקונספטים"
+    "chooseConceptCta": "לספריית הקונספטים",
+    "budgetTitle": "תכננו את התקציב",
+    "budgetBody": "הגדירו סכום כולל ואנחנו נחלק אותו בין הקטגוריות.",
+    "budgetCta": "פתחו תקציב",
+    "budgetSummary": "תקציב: {committed} שולמו מתוך {total}"
   },
   "Admin": { "placeholder": "אזור ניהול (למנהלים בלבד)" },
   "AdminTemplates": {
@@ -164,7 +168,11 @@
     "reminderOff": "תזכורת כבויה",
     "edit": "עריכה",
     "delete": "מחיקה",
-    "error": "משהו השתבש. נסו שוב"
+    "error": "משהו השתבש. נסו שוב",
+    "paidPrompt": "כמה שילמתם? (אופציונלי)",
+    "paidSkip": "דילוג",
+    "paidSave": "שמירה",
+    "paidLabel": "שולם {amount}"
   },
   "TaskCategory": {
     "VENUE": "אולם",
@@ -235,5 +243,49 @@
     "delete": "מחיקה",
     "edit": "עריכה",
     "error": "משהו השתבש."
+  },
+  "Budget": {
+    "title": "תקציב",
+    "subtitle": "תכננו ומטבו את תקציב החתונה",
+    "totalLabel": "תקציב כולל",
+    "setTotalCta": "הגדרת תקציב",
+    "editTotalCta": "עריכה",
+    "noBudget": "הגדירו תקציב כולל כדי לראות את חלוקת הקטגוריות.",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "currencySymbol": "₪",
+    "giftTitle": "מתנות משוערות",
+    "giftAvgLabel": "מתנה ממוצעת לאורח",
+    "giftGuestsLabel": "אורחים",
+    "giftTotalLabel": "סך המתנות המשוער",
+    "giftSurplus": "עודף משוער",
+    "giftShortfall": "גירעון משוער",
+    "giftNeedsGuests": "הוסיפו מספר אורחים בפרופיל החתונה כדי לחשב מתנות.",
+    "breakdownTitle": "חלוקת קטגוריות",
+    "recommended": "מומלץ",
+    "committed": "שולם",
+    "open": "פנוי",
+    "pinCta": "קיבוע",
+    "pinnedLabel": "מקובע",
+    "unpinCta": "ביטול קיבוע",
+    "overBudget": "התוכנית חורגת מהתקציב ב-{amount}. בתת-מימון: {categories}.",
+    "headroom": "נותרו {amount} לא מוקצים.",
+    "committedOverrun": "כבר שולמו {amount} מעל התקציב הכולל.",
+    "spentAbovePin": "שולם כאן מעל הסכום המקובע.",
+    "taskPaidLabel": "שולם",
+    "taskEstimateLabel": "הערכה",
+    "error": "משהו השתבש. נסו שוב."
+  },
+  "AdminBudget": {
+    "title": "בסיס תקציב",
+    "subtitle": "חלוקת ברירת המחדל באחוזים לכל זוג",
+    "categoryLabel": "קטגוריה",
+    "percentLabel": "אחוז",
+    "activeLabel": "פעיל",
+    "orderLabel": "סדר",
+    "sumOk": "סך האחוזים הפעילים {sum}%.",
+    "sumWarn": "סך האחוזים הפעילים {sum}% (צריך להיות 100%).",
+    "save": "שמירה",
+    "error": "משהו השתבש. נסו שוב."
   }
 }

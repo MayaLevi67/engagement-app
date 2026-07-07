@@ -1,3 +1,4 @@
+import { TaskCategory } from '@prisma/client';
 import { prisma } from '../lib/db';
 
 type TemplateSeed = {
@@ -205,6 +206,21 @@ const concepts: ConceptSeed[] = [
   },
 ];
 
+const budgetBaseline: { category: TaskCategory; defaultPercent: number; sortOrder: number }[] = [
+  { category: 'VENUE', defaultPercent: 20, sortOrder: 10 },
+  { category: 'CATERING', defaultPercent: 25, sortOrder: 20 },
+  { category: 'PHOTOGRAPHY', defaultPercent: 10, sortOrder: 30 },
+  { category: 'MUSIC', defaultPercent: 10, sortOrder: 40 },
+  { category: 'ATTIRE', defaultPercent: 8, sortOrder: 50 },
+  { category: 'DESIGN', defaultPercent: 7, sortOrder: 60 },
+  { category: 'FLOWERS', defaultPercent: 6, sortOrder: 70 },
+  { category: 'GUESTS', defaultPercent: 4, sortOrder: 80 },
+  { category: 'CEREMONY', defaultPercent: 3, sortOrder: 90 },
+  { category: 'PLANNING', defaultPercent: 3, sortOrder: 100 },
+  { category: 'BUDGET', defaultPercent: 0, sortOrder: 110 },
+  { category: 'OTHER', defaultPercent: 4, sortOrder: 120 },
+];
+
 async function main() {
   for (const t of templates) {
     await prisma.checklistTemplate.upsert({
@@ -264,6 +280,15 @@ async function main() {
   }
 
   console.log(`Seeded ${concepts.length} wedding concepts.`);
+
+  for (const b of budgetBaseline) {
+    await prisma.budgetTemplate.upsert({
+      where: { category: b.category },
+      create: { category: b.category, defaultPercent: b.defaultPercent, active: true, sortOrder: b.sortOrder },
+      update: { defaultPercent: b.defaultPercent, active: true, sortOrder: b.sortOrder },
+    });
+  }
+  console.log(`Seeded ${budgetBaseline.length} budget baseline rows.`);
 }
 
 main()

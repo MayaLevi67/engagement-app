@@ -107,6 +107,8 @@ model Wedding {
   selectedConceptId String?
   selectedConcept   Concept?          @relation(fields: [selectedConceptId], references: [id], onDelete: SetNull)
   favorites         ConceptFavorite[]
+  avgGiftPerGuest   Int?
+  budgetAllocations BudgetAllocation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -187,6 +189,8 @@ model Task {
   remindAt          DateTime?
 
   notes             String?
+  estimatedCost     Int?
+  amountPaid        Int?
   sortOrder         Int          @default(0)
   deletedAt         DateTime?    // soft-delete / trash
 
@@ -258,5 +262,28 @@ model ConceptFavorite {
   createdAt DateTime @default(now())
 
   @@unique([weddingId, conceptId])
+  @@index([weddingId])
+}
+
+model BudgetTemplate {
+  id             String       @id @default(cuid())
+  category       TaskCategory @unique
+  defaultPercent Int
+  active         Boolean      @default(true)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model BudgetAllocation {
+  id        String       @id @default(cuid())
+  weddingId String
+  wedding   Wedding      @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  category  TaskCategory
+  amount    Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([weddingId, category])
   @@index([weddingId])
 }

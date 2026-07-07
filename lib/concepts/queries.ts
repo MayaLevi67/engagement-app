@@ -53,9 +53,13 @@ export async function getWeddingConceptState(weddingId: string): Promise<{
 /** Map a concept element into a Task-create payload (self-contained snapshot). */
 export function elementToTaskPayload(
   weddingId: string,
-  element: Pick<ConceptElement, 'id' | 'title_en' | 'title_he' | 'titleLocale' | 'category'>,
+  element: Pick<ConceptElement, 'id' | 'title_en' | 'title_he' | 'titleLocale' | 'category' | 'estCostMin' | 'estCostMax'>,
   sortOrder: number,
 ): Prisma.TaskUncheckedCreateInput {
+  const estimatedCost =
+    element.estCostMin != null && element.estCostMax != null
+      ? Math.round((element.estCostMin + element.estCostMax) / 2)
+      : (element.estCostMin ?? element.estCostMax ?? null);
   return {
     weddingId,
     title_en: element.title_en,
@@ -65,6 +69,7 @@ export function elementToTaskPayload(
     dueOffsetDays: null,
     isCustom: true,
     sourceConceptElementId: element.id,
+    estimatedCost,
     sortOrder,
   };
 }
