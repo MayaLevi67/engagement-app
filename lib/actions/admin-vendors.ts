@@ -35,7 +35,27 @@ export async function updateVendor(id: string, input: unknown): Promise<AdminRes
   const parsed = vendorSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'INVALID' };
   if (!(await globalVendor(id))) return { ok: false, error: 'NOT_FOUND' };
-  await prisma.vendor.update({ where: { id }, data: parsed.data });
+  // verified/isPremium/active/sortOrder are owned by the dedicated setters
+  // (setVendorVerified/setVendorPremium/setVendorActive/reorderVendor). Write only the
+  // content fields so a partial edit can't silently reset a vendor's flags via schema defaults.
+  const d = parsed.data;
+  await prisma.vendor.update({
+    where: { id },
+    data: {
+      name_en: d.name_en,
+      name_he: d.name_he,
+      titleLocale: d.titleLocale,
+      description_en: d.description_en,
+      description_he: d.description_he,
+      category: d.category,
+      city: d.city,
+      priceMin: d.priceMin,
+      priceMax: d.priceMax,
+      email: d.email,
+      phone: d.phone,
+      website: d.website,
+    },
+  });
   return { ok: true, id };
 }
 

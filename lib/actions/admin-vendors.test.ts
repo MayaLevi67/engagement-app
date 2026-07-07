@@ -67,3 +67,22 @@ describe('updateVendor refuses a private vendor', () => {
     expect(await updateVendor('pv1', { name_en: 'X', name_he: 'י', category: 'MUSIC' })).toEqual({ ok: false, error: 'NOT_FOUND' });
   });
 });
+
+describe('updateVendor does not reset independently-managed flags', () => {
+  it('omits verified/isPremium/active/sortOrder from the update when the payload omits them', async () => {
+    asAdmin(true);
+    (prisma.vendor.findFirst as unknown as Mock).mockResolvedValue({ id: 'v1' }); // global vendor found
+    const r = await updateVendor('v1', { name_en: 'Renamed', name_he: 'שם', category: 'MUSIC' });
+    expect(r).toEqual({ ok: true, id: 'v1' });
+    expect(prisma.vendor.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({
+          verified: expect.anything(),
+          isPremium: expect.anything(),
+          active: expect.anything(),
+          sortOrder: expect.anything(),
+        }),
+      }),
+    );
+  });
+});
