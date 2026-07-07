@@ -1,59 +1,45 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { resolveVendorTitle } from '@/lib/vendors/title';
-import { VendorForm, type SerializedAdminVendor, type AdminVendorImage } from './vendor-form';
+import { deleteVendor, setVendorActive, setVendorVerified, setVendorPremium } from '@/lib/actions/admin-vendors';
+import { VendorForm, type SerializedAdminVendor } from './vendor-form';
 
-export type { SerializedAdminVendor, AdminVendorImage };
+export type { SerializedAdminVendor };
 
 type BoolField = 'active' | 'verified' | 'isPremium';
-
-// See the comment on adminVendorsActions() in vendor-form.tsx: the admin
-// actions module transitively imports NextAuth, which this test environment
-// can't statically resolve, so it's imported dynamically inside handlers
-// rather than at module scope.
-async function adminVendorsActions() {
-  return import('@/lib/actions/admin-vendors');
-}
 
 export function VendorsAdmin({ vendors }: { vendors: SerializedAdminVendor[] }) {
   const t = useTranslations('AdminVendors');
   const tCategory = useTranslations('TaskCategory');
   const locale = useLocale();
-  const [list, setList] = useState(vendors);
+  const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const editing = list.find((v) => v.id === editingId) ?? null;
+  const editing = vendors.find((v) => v.id === editingId) ?? null;
 
-  function upsert(v: SerializedAdminVendor) {
-    setList((l) => (l.some((x) => x.id === v.id) ? l.map((x) => (x.id === v.id ? v : x)) : [...l, v]));
-    setCreating(false);
+  function refresh() {
     setEditingId(null);
-  }
-
-  function patchImages(vendorId: string, images: AdminVendorImage[]) {
-    setList((l) => l.map((x) => (x.id === vendorId ? { ...x, images } : x)));
+    setCreating(false);
+    router.refresh();
   }
 
   async function onToggle(id: string, field: BoolField, next: boolean) {
     setPendingId(id);
-    const { setVendorActive, setVendorVerified, setVendorPremium } = await adminVendorsActions();
     const setter = field === 'active' ? setVendorActive : field === 'verified' ? setVendorVerified : setVendorPremium;
     const r = await setter(id, next);
     setPendingId(null);
-    if (!r.ok) return;
-    setList((l) => l.map((x) => (x.id === id ? { ...x, [field]: next } : x)));
+    if (r.ok) router.refresh();
   }
 
   async function onDelete(id: string) {
     setPendingId(id);
-    const { deleteVendor } = await adminVendorsActions();
     const r = await deleteVendor(id);
     setPendingId(null);
-    if (!r.ok) return;
-    setList((l) => l.filter((x) => x.id !== id));
+    if (r.ok) router.refresh();
   }
 
   return (
@@ -76,17 +62,22 @@ export function VendorsAdmin({ vendors }: { vendors: SerializedAdminVendor[] }) 
       </header>
 
       {creating ? (
-        <VendorForm vendor={null} onSaved={upsert} onImagesChanged={patchImages} onCancel={() => setCreating(false)} />
+        <VendorForm
+          vendor={null}
+          onSaved={refresh}
+          onNestedChange={() => router.refresh()}
+          onCancel={() => setCreating(false)}
+        />
       ) : null}
 
       <ul className="flex flex-col gap-2">
-        {list.map((v) => (
+        {vendors.map((v) => (
           <li key={v.id} className="rounded-card bg-surface p-3">
             {editing?.id === v.id ? (
               <VendorForm
                 vendor={editing}
-                onSaved={upsert}
-                onImagesChanged={patchImages}
+                onSaved={refresh}
+                onNestedChange={() => router.refresh()}
                 onCancel={() => setEditingId(null)}
               />
             ) : (

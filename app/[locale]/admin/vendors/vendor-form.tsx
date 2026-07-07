@@ -3,15 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { TaskCategory, type TitleLocale } from '@prisma/client';
-
-// The admin actions live in a 'use server' file that imports '@/lib/auth'
-// (NextAuth), which this Vite/vitest test environment cannot statically
-// resolve. Importing dynamically inside the handlers (instead of a static
-// top-level import) keeps that resolution lazy — it only runs when a form is
-// actually submitted, so a render-only test never touches it.
-async function adminVendorsActions() {
-  return import('@/lib/actions/admin-vendors');
-}
+import { createVendor, updateVendor, addVendorImage, deleteVendorImage } from '@/lib/actions/admin-vendors';
 
 const CATEGORY_OPTIONS = Object.values(TaskCategory);
 
@@ -68,12 +60,12 @@ interface ContentPayload {
 export function VendorForm({
   vendor,
   onSaved,
-  onImagesChanged,
+  onNestedChange,
   onCancel,
 }: {
   vendor: SerializedAdminVendor | null;
-  onSaved: (vendor: SerializedAdminVendor) => void;
-  onImagesChanged: (vendorId: string, images: AdminVendorImage[]) => void;
+  onSaved: () => void;
+  onNestedChange: () => void;
   onCancel: () => void;
 }) {
   const t = useTranslations('AdminVendors');
@@ -114,26 +106,13 @@ export function VendorForm({
       phone: phone.trim() || null,
       website: website.trim() || null,
     };
-    const { createVendor, updateVendor } = await adminVendorsActions();
     const r = vendor ? await updateVendor(vendor.id, payload) : await createVendor(payload);
     setPending(false);
     if (!r.ok) {
       setError(true);
       return;
     }
-    onSaved(
-      vendor
-        ? { ...vendor, ...payload }
-        : {
-            id: r.id!,
-            ...payload,
-            verified: false,
-            isPremium: false,
-            active: true,
-            sortOrder: 0,
-            images: [],
-          },
-    );
+    onSaved();
   }
 
   return (
@@ -251,43 +230,32 @@ export function VendorForm({
         </button>
       </div>
 
-      {vendor ? <VendorImageEditor vendor={vendor} onImagesChanged={onImagesChanged} t={t} /> : null}
+      {vendor ? <VendorImageEditor vendor={vendor} onChanged={onNestedChange} t={t} /> : null}
     </form>
   );
 }
 
 function VendorImageEditor({
   vendor,
-  onImagesChanged,
+  onChanged,
   t,
 }: {
   vendor: SerializedAdminVendor;
-  onImagesChanged: (vendorId: string, images: AdminVendorImage[]) => void;
+  onChanged: () => void;
   t: ReturnType<typeof useTranslations>;
 }) {
   const [url, setUrl] = useState('');
 
   async function onAddImage() {
     if (!url.trim()) return;
-    const trimmed = url.trim();
-    const { addVendorImage } = await adminVendorsActions();
-    const r = await addVendorImage(vendor.id, { url: trimmed, sortOrder: vendor.images.length });
-    if (!r.ok) return;
+    await addVendorImage(vendor.id, { url: url.trim(), sortOrder: vendor.images.length });
     setUrl('');
-    onImagesChanged(vendor.id, [
-      ...vendor.images,
-      { id: r.id!, url: trimmed, alt_en: null, alt_he: null, sortOrder: vendor.images.length },
-    ]);
+    onChanged();
   }
 
   async function onDeleteImage(imageId: string) {
-    const { deleteVendorImage } = await adminVendorsActions();
-    const r = await deleteVendorImage(imageId);
-    if (!r.ok) return;
-    onImagesChanged(
-      vendor.id,
-      vendor.images.filter((im) => im.id !== imageId),
-    );
+    await deleteVendorImage(imageId);
+    onChanged();
   }
 
   return (
