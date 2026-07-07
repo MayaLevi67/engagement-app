@@ -1,80 +1,41 @@
-import { setRequestLocale, getTranslations } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { getCurrentWedding } from '@/lib/wedding/queries';
-import { rollupTasks } from '@/lib/budget/rollup';
-import { Link } from '@/lib/i18n/navigation';
+import { redirect } from '@/lib/i18n/navigation';
+import { getDashboardData } from '@/lib/dashboard/aggregate';
+import { CountdownHero } from './countdown-hero';
+import { OverviewCards } from './overview-cards';
+import { NextUp } from './next-up';
 
-export default async function DashboardPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations('Dashboard');
 
   const session = await auth();
-  const wedding = session?.user?.id ? await getCurrentWedding(session.user.id) : null;
+  if (!session?.user?.id) redirect({ href: '/login', locale });
+  const wedding = await getCurrentWedding(session!.user.id);
+  if (!wedding) redirect({ href: '/onboarding', locale });
 
-  // Only roll up committed spend on the summary path (budget set). The
-  // null-budget nudge path stays a single cheap query.
-  let committedTotal = 0;
-  if (wedding?.budgetTotal != null) {
-    const tasks = await prisma.task.findMany({
-      where: { weddingId: wedding.id, deletedAt: null },
-      select: { category: true, status: true, amountPaid: true, estimatedCost: true, deletedAt: true },
-    });
-    const { committed } = rollupTasks(tasks);
-    committedTotal = Object.values(committed).reduce((s, n) => s + (n ?? 0), 0);
-  }
+  const data = await getDashboardData(wedding!, new Date());
 
   return (
-    <main className="flex flex-col gap-6 p-8">
-      {t('placeholder')}
-      {!wedding?.selectedConceptId ? (
-        <section className="rounded-card bg-surface p-5">
-          <h2 className="font-display text-lg text-text">{t('chooseConceptTitle')}</h2>
-          <p className="mt-1 text-sm text-muted">{t('chooseConceptBody')}</p>
-          <Link
-            href="/concepts"
-            className="mt-3 inline-block rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
-          >
-            {t('chooseConceptCta')}
-          </Link>
-        </section>
-      ) : null}
-
-      <section className="rounded-card bg-surface p-5">
-        <h2 className="font-display text-lg text-text">{t('budgetTitle')}</h2>
-        {wedding?.budgetTotal == null ? (
-          <p className="mt-1 text-sm text-muted">{t('budgetBody')}</p>
-        ) : (
-          <p className="mt-1 text-sm text-muted">
-            {t('budgetSummary', {
-              committed: `₪${committedTotal.toLocaleString(locale)}`,
-              total: `₪${wedding.budgetTotal.toLocaleString(locale)}`,
-            })}
-          </p>
-        )}
-        <Link
-          href="/budget"
-          className="mt-3 inline-block rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
-        >
-          {t('budgetCta')}
-        </Link>
-      </section>
-
-      <section className="rounded-card bg-surface p-5">
-        <h2 className="font-display text-lg text-text">{t('vendorsTitle')}</h2>
-        <p className="mt-1 text-sm text-muted">{t('vendorsBody')}</p>
-        <Link
-          href="/vendors"
-          className="mt-3 inline-block rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
-        >
-          {t('vendorsCta')}
-        </Link>
-      </section>
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6 sm:p-8">
+      <CountdownHero
+        locale={locale}
+        partner1Name={data.partner1Name}
+        partner2Name={data.partner2Name}
+        countdownDays={data.countdownDays}
+        dateIsApproximate={data.dateIsApproximate}
+        weddingDate={data.weddingDate}
+      />
+      <OverviewCards
+        locale={locale}
+        checklist={data.checklist}
+        budget={data.budget}
+        vendors={data.vendors}
+        concept={data.concept}
+      />
+      <NextUp locale={locale} tasks={data.nextUp} />
     </main>
   );
 }

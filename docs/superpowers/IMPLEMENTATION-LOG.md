@@ -78,6 +78,23 @@ Each phase was built via the superpowers brainstorm → spec → plan → subage
 
 ---
 
+## Phase 7 — Dashboard ✅ complete (branch `phase-7-dashboard`)
+
+**Spec:** `specs/2026-07-07-dashboard-design.md` · **Plan:** `plans/2026-07-07-phase7-dashboard.md`
+**Branch `phase-7-dashboard`**, base `310ab67` (includes Phase 1–6 merges), HEAD `a4ad9b2`, 6 commits. 3 tasks + final review.
+**Delivered:** a **read-only** home view replacing the placeholder `/dashboard`. New `lib/dashboard/aggregate.ts` — pure, unit-tested derivations (`daysUntilWedding`, `checklistProgress`, `budgetSummary`, `vendorCounts`, `nextUpTasks`) + a `getDashboardData(wedding, now)` composer that reuses the existing per-phase queries (`getTasks`, `rollupTasks`, `getWeddingQuotes`, one concept lookup) — **no new schema, no mutations, no server actions**. New UI: a **countdown hero** (partner names + days-to-go — the widget deferred from Phase 2 — with no-date/approximate/passed states), four **dual-mode overview cards** (checklist progress+overdue / budget committed·remaining·of-total / vendors shortlisted·booked / concept name+palette — each a live summary or a nudge), and a **"next up"** task list; the `Dashboard` i18n namespace expanded (he+en, ICU plurals); `e2e/dashboard.spec.ts` (hero + cards + budget nudge→summary flip + gated).
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **298 unit + 18 e2e** — all green. 8/8 acceptance criteria. (Final whole-branch review: **ready to merge with fixes**, no Critical; the one Important — budget card omitting "remaining" — was fixed in `a4ad9b2`.)
+
+**Key decisions / deviations:**
+- **Read-only aggregation seam.** One `getDashboardData` composer + pure derivations; the page loader is thin. `now` is injected into every derivation (no internal `Date.now()`) so the math is deterministic and unit-tests without a DB. This closes the Phase 2 **countdown-widget deferral**.
+- **UTC start-of-day for day math** — `daysUntilWedding`/overdue use UTC-based `startOfDay`, matching the repo's existing `computeDueDate` convention (dates are stored UTC-midnight); deterministic across hosts (the plan's local-time draft failed the UTC-semantics test on the UTC+3 dev host).
+- **Dual-mode cards, not separate components** — each card renders a live summary or its nudge from the section's summary/empty marker, preserving the old nudge UX while adding real data; all pct computations divide-by-zero-guard.
+- **`vendorCounts` shortlisted = all quote rows** — consistent with how `/vendors` already derives the shortlist from `getWeddingQuotes`.
+- **Approximate date shows a soft label** — final-review fix: when `dateIsApproximate`, the hero shows "Around {month year}" (via the weddingDate) instead of a misleadingly-precise day count (spec decision #4), which also consumed a previously-dead `weddingDate` prop.
+- **Budget card shows remaining** — final-review fix: the card now renders committed·of-total **and** remaining (acceptance #2); `budgetSummary` had computed `remaining` but nothing rendered it.
+
+---
+
 ## Phase 6 — Vendor Database ✅ complete (branch `phase-6-vendors`)
 
 **Spec:** `specs/2026-07-07-vendor-database-design.md` · **Plan:** `plans/2026-07-07-phase6-vendors.md`
@@ -180,5 +197,5 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 
 ## Roadmap position
 
-Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database).
-Next: **Phase 7 — Dashboard** (pull the phases together into a home view). Then Admin Panel (8), Premium/Payments (9, enforces `isPremium` + real transactions), AI Multi-Agent Layer (10, AI-driven vendor matching + budget optimization). A future additive step: in-app **messaging** to vendors (contact schema is ready).
+Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard).
+Next: **Phase 8 — Admin Panel** (a polished shared admin shell over the per-phase CMSes — templates, concepts, budget baseline, vendors). Then Premium/Payments (9, enforces `isPremium` + real transactions), AI Multi-Agent Layer (10, AI-driven vendor matching + budget optimization; the read-only `lib/dashboard/` seam is a natural plug-in point for a "what should I do next?" summary). A future additive step: in-app **messaging** to vendors (contact schema is ready).
