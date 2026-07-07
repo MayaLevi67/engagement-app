@@ -65,6 +65,13 @@ enum TitleLocale {
   HE
 }
 
+enum VendorQuoteStatus {
+  CONSIDERING
+  QUOTED
+  BOOKED
+  DECLINED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -109,6 +116,8 @@ model Wedding {
   favorites         ConceptFavorite[]
   avgGiftPerGuest   Int?
   budgetAllocations BudgetAllocation[]
+  vendors           Vendor[]
+  vendorQuotes      VendorQuote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -285,5 +294,70 @@ model BudgetAllocation {
   updatedAt DateTime     @updatedAt
 
   @@unique([weddingId, category])
+  @@index([weddingId])
+}
+
+model Vendor {
+  id             String       @id @default(cuid())
+  weddingId      String?
+  wedding        Wedding?     @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  name_en        String
+  name_he        String
+  titleLocale    TitleLocale  @default(AUTO)
+  description_en String?
+  description_he String?
+  category       TaskCategory
+  city           String?
+  priceMin       Int?
+  priceMax       Int?
+
+  email          String?
+  phone          String?
+  website        String?
+
+  verified       Boolean      @default(false)
+  isPremium      Boolean      @default(false)
+  active         Boolean      @default(true)
+  sortOrder      Int          @default(0)
+
+  images         VendorImage[]
+  quotes         VendorQuote[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([weddingId])
+  @@index([category, city])
+}
+
+model VendorImage {
+  id        String  @id @default(cuid())
+  vendorId  String
+  vendor    Vendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  url       String
+  alt_en    String?
+  alt_he    String?
+  sortOrder Int     @default(0)
+
+  @@index([vendorId])
+}
+
+model VendorQuote {
+  id        String            @id @default(cuid())
+  weddingId String
+  wedding   Wedding           @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor            @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  status    VendorQuoteStatus @default(CONSIDERING)
+  amount    Int?
+  notes     String?
+  taskId    String?
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([weddingId, vendorId])
   @@index([weddingId])
 }

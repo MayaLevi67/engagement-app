@@ -12,6 +12,7 @@ export default async function AdminPage({
   const tConcepts = await getTranslations('AdminConcepts');
   const tTemplates = await getTranslations('AdminTemplates');
   const tBudget = await getTranslations('AdminBudget');
+  const tVendors = await getTranslations('AdminVendors');
   return (
     <main className="mx-auto w-full max-w-3xl p-8">
       <p className="mb-4 text-text">{t('placeholder')}</p>
@@ -29,6 +30,11 @@ export default async function AdminPage({
         <li>
           <Link href="/admin/budget-templates" className="text-primary underline">
             {tBudget('title')}
+          </Link>
+        </li>
+        <li>
+          <Link href="/admin/vendors" className="text-primary underline">
+            {tVendors('title')}
           </Link>
         </li>
       </ul>

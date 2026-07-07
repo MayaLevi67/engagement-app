@@ -64,6 +64,17 @@ export default async function DashboardPage({
           {t('budgetCta')}
         </Link>
       </section>
+
+      <section className="rounded-card bg-surface p-5">
+        <h2 className="font-display text-lg text-text">{t('vendorsTitle')}</h2>
+        <p className="mt-1 text-sm text-muted">{t('vendorsBody')}</p>
+        <Link
+          href="/vendors"
+          className="mt-3 inline-block rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
+        >
+          {t('vendorsCta')}
+        </Link>
+      </section>
     </main>
   );
 }

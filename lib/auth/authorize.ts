@@ -4,7 +4,7 @@ type Decision =
   | { type: 'next' }
   | { type: 'redirect'; to: string };
 
-const APP_PREFIXES = ['/dashboard', '/onboarding', '/settings', '/checklist', '/concepts', '/budget'];
+const APP_PREFIXES = ['/dashboard', '/onboarding', '/settings', '/checklist', '/concepts', '/budget', '/vendors'];
 const ADMIN_PREFIXES = ['/admin'];
 const AUTH_PREFIXES = ['/login', '/register', '/forgot-password', '/reset-password'];
 

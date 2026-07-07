@@ -221,6 +221,57 @@ const budgetBaseline: { category: TaskCategory; defaultPercent: number; sortOrde
   { category: 'OTHER', defaultPercent: 4, sortOrder: 120 },
 ];
 
+type VendorSeed = {
+  id: string;
+  name_en: string; name_he: string;
+  description_en: string; description_he: string;
+  category: TaskCategory;
+  city: string;
+  priceMin: number; priceMax: number;
+  email: string; phone: string; website: string;
+  verified: boolean; isPremium: boolean; sortOrder: number;
+  images: { url: string; alt_en: string; alt_he: string; sortOrder: number }[];
+};
+
+const vendors: VendorSeed[] = [
+  {
+    id: 'vendor-lumiere-photo', name_en: 'Lumière Photography', name_he: 'לומייר צילום',
+    description_en: 'Fine-art wedding photography with a timeless, editorial style.',
+    description_he: 'צילום חתונות אמנותי בסגנון עריכתי ונצחי.',
+    category: 'PHOTOGRAPHY', city: 'Tel Aviv', priceMin: 8000, priceMax: 18000,
+    email: 'hello@lumiere.example', phone: '+972500000001', website: 'https://lumiere.example',
+    verified: true, isPremium: true, sortOrder: 10,
+    images: [{ url: 'https://images.unsplash.com/photo-1519741497674-611481863552', alt_en: 'Wedding couple portrait', alt_he: 'פורטרט של זוג חתונה', sortOrder: 0 }],
+  },
+  {
+    id: 'vendor-groove-dj', name_en: 'Groove DJ Collective', name_he: 'גרוב תקליטנים',
+    description_en: 'High-energy DJs for the main set and a late-night after-party.',
+    description_he: 'תקליטנים אנרגטיים לסט המרכזי ולאפטר של אחרי חצות.',
+    category: 'MUSIC', city: 'Tel Aviv', priceMin: 5000, priceMax: 12000,
+    email: 'book@groove.example', phone: '+972500000002', website: 'https://groove.example',
+    verified: true, isPremium: false, sortOrder: 20,
+    images: [{ url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819', alt_en: 'DJ at a wedding party', alt_he: 'תקליטן במסיבת חתונה', sortOrder: 0 }],
+  },
+  {
+    id: 'vendor-olive-catering', name_en: 'Olive & Thyme Catering', name_he: 'זית ותימין קייטרינג',
+    description_en: 'Seasonal Mediterranean menus and grazing tables.',
+    description_he: 'תפריטים ים-תיכוניים עונתיים ושולחנות גרייזינג.',
+    category: 'CATERING', city: 'Jerusalem', priceMin: 12000, priceMax: 40000,
+    email: 'events@olive.example', phone: '+972500000003', website: 'https://olive.example',
+    verified: false, isPremium: false, sortOrder: 30,
+    images: [{ url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288', alt_en: 'Catering grazing table', alt_he: 'שולחן גרייזינג', sortOrder: 0 }],
+  },
+  {
+    id: 'vendor-bloom-florals', name_en: 'Bloom Room Florals', name_he: 'חדר הפריחה',
+    description_en: 'Lush, garden-style florals and installations.',
+    description_he: 'עיצובי פרחים גני עשירים ומיצבים.',
+    category: 'FLOWERS', city: 'Haifa', priceMin: 4000, priceMax: 15000,
+    email: 'studio@bloom.example', phone: '+972500000004', website: 'https://bloom.example',
+    verified: true, isPremium: false, sortOrder: 40,
+    images: [{ url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed', alt_en: 'Floral centerpiece', alt_he: 'מרכז שולחן פרחוני', sortOrder: 0 }],
+  },
+];
+
 async function main() {
   for (const t of templates) {
     await prisma.checklistTemplate.upsert({
@@ -289,6 +340,18 @@ async function main() {
     });
   }
   console.log(`Seeded ${budgetBaseline.length} budget baseline rows.`);
+
+  for (const v of vendors) {
+    const { images, ...fields } = v;
+    await prisma.vendor.upsert({
+      where: { id: v.id },
+      create: { ...fields, titleLocale: 'AUTO', active: true },
+      update: { ...fields, titleLocale: 'AUTO', active: true },
+    });
+    await prisma.vendorImage.deleteMany({ where: { vendorId: v.id } });
+    await prisma.vendorImage.createMany({ data: images.map((im) => ({ vendorId: v.id, ...im })) });
+  }
+  console.log(`Seeded ${vendors.length} vendors.`);
 }
 
 main()
