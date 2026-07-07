@@ -32,7 +32,7 @@
     "heroCoupleSolo": "{p1}",
     "daysToGo": "{days, plural, =0 {The big day is today!} one {# day to go} other {# days to go}}",
     "datePassed": "Congratulations — enjoy married life!",
-    "dateApproximate": "Your date is still approximate",
+    "dateApproximateAround": "Around {date}",
     "noDateTitle": "Set your wedding date",
     "noDateCta": "Add a date",
     "checklistTitle": "Checklist",
@@ -53,6 +53,7 @@
     "budgetBody": "Set a total and let us split it across your categories.",
     "budgetCta": "Open budget",
     "budgetSummary": "Budget: {committed} committed of {total}",
+    "budgetRemaining": "{remaining} remaining",
     "vendorsTitle": "Find your vendors",
     "vendorsBody": "Browse suppliers matched to your area and budget.",
     "vendorsCta": "Browse vendors"

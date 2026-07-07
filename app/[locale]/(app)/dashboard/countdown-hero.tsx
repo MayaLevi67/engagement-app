@@ -12,7 +12,7 @@ interface CountdownHeroProps {
 
 export function CountdownHero(props: CountdownHeroProps) {
   const t = useTranslations('Dashboard');
-  const { partner1Name, partner2Name, countdownDays, dateIsApproximate } = props;
+  const { locale, partner1Name, partner2Name, countdownDays, dateIsApproximate, weddingDate } = props;
 
   const couple =
     partner1Name && partner2Name
@@ -31,13 +31,16 @@ export function CountdownHero(props: CountdownHeroProps) {
             {t('noDateCta')}
           </Link>
         </div>
+      ) : dateIsApproximate && weddingDate ? (
+        <p className="mt-3 font-display text-2xl text-primary">
+          {t('dateApproximateAround', {
+            date: new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(weddingDate)),
+          })}
+        </p>
       ) : countdownDays < 0 ? (
         <p className="mt-3 font-body text-lg text-text">{t('datePassed')}</p>
       ) : (
-        <>
-          <p className="mt-3 font-display text-2xl text-primary">{t('daysToGo', { days: countdownDays })}</p>
-          {dateIsApproximate ? <p className="mt-1 text-xs text-muted">{t('dateApproximate')}</p> : null}
-        </>
+        <p className="mt-3 font-display text-2xl text-primary">{t('daysToGo', { days: countdownDays })}</p>
       )}
     </section>
   );

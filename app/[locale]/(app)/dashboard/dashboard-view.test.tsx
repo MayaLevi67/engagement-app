@@ -24,6 +24,11 @@ describe('CountdownHero', () => {
     wrap(<CountdownHero locale="en" partner1Name="Maya" partner2Name={null} countdownDays={null} dateIsApproximate={false} weddingDate={null} />);
     expect(screen.getByText(/set your wedding date/i)).toBeTruthy();
   });
+  it('shows a soft around-<month year> label for an approximate date, not a day count', () => {
+    wrap(<CountdownHero locale="en" partner1Name="Maya" partner2Name="Alex" countdownDays={40} dateIsApproximate={true} weddingDate="2026-07-17T00:00:00.000Z" />);
+    expect(screen.getByText(/around july 2026/i)).toBeTruthy();
+    expect(screen.queryByText(/days to go/i)).toBeNull();
+  });
 });
 
 describe('OverviewCards (dual-mode)', () => {
@@ -32,9 +37,10 @@ describe('OverviewCards (dual-mode)', () => {
     checklist: { done: 2, total: 5, pct: 40, overdue: 1 },
     vendors: { shortlisted: 3, booked: 1 },
   };
-  it('shows the budget summary when a budget exists', () => {
+  it('shows the budget summary with a remaining line when a budget exists', () => {
     wrap(<OverviewCards {...base} budget={{ total: 100000, committed: 20000, remaining: 80000, pct: 20 }} concept={null} />);
     expect(screen.getByText(/committed of/i)).toBeTruthy();
+    expect(screen.getByText(/remaining/i)).toBeTruthy();
   });
   it('shows the budget nudge when no budget is set', () => {
     wrap(<OverviewCards {...base} budget={null} concept={null} />);

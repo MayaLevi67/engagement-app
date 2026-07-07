@@ -47,7 +47,10 @@ export function OverviewCards({ locale, checklist, budget, vendors, concept }: O
       {/* Budget — dual-mode (summary vs nudge body; same CTA either way) */}
       <Card title={t('budgetTitle')} href="/budget" cta={t('budgetCta')}>
         {budget ? (
-          <span>{t('budgetSummary', { committed: fmt(budget.committed), total: fmt(budget.total) })}</span>
+          <div className="flex flex-col gap-1">
+            <span>{t('budgetSummary', { committed: fmt(budget.committed), total: fmt(budget.total) })}</span>
+            <span>{t('budgetRemaining', { remaining: fmt(budget.remaining) })}</span>
+          </div>
         ) : (
           <span>{t('budgetBody')}</span>
         )}

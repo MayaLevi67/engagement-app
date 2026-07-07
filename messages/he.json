@@ -32,7 +32,7 @@
     "heroCoupleSolo": "{p1}",
     "daysToGo": "{days, plural, =0 {היום זה קורה!} one {נותר יום אחד} other {נותרו # ימים}}",
     "datePassed": "מזל טוב — תיהנו מהחיים הנשואים!",
-    "dateApproximate": "התאריך שלכם עדיין משוער",
+    "dateApproximateAround": "בסביבות {date}",
     "noDateTitle": "הגדירו את תאריך החתונה",
     "noDateCta": "הוספת תאריך",
     "checklistTitle": "צ'ק ליסט",
@@ -53,6 +53,7 @@
     "budgetBody": "הגדירו סכום כולל ואנחנו נחלק אותו בין הקטגוריות.",
     "budgetCta": "פתחו תקציב",
     "budgetSummary": "תקציב: {committed} שולמו מתוך {total}",
+    "budgetRemaining": "נותרו {remaining}",
     "vendorsTitle": "מצאו את הספקים שלכם",
     "vendorsBody": "עיינו בספקים שתואמים לאזור ולתקציב שלכם.",
     "vendorsCta": "עיון בספקים"
