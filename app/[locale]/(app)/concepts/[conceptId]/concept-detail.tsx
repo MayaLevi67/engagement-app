@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { TaskCategory } from '@prisma/client';
+import type { TaskCategory, TitleLocale } from '@prisma/client';
 import { Link } from '@/lib/i18n/navigation';
 import { chooseConcept, clearSelectedConcept, addElementToChecklist } from '@/lib/actions/concepts';
+import { resolveVendorTitle } from '@/lib/vendors/title';
 
 export interface SerializedElement {
   id: string;
@@ -28,6 +29,13 @@ export interface SerializedConceptDetail {
   elements: SerializedElement[];
 }
 
+export interface SerializedConceptVendor {
+  id: string;
+  name_en: string;
+  name_he: string;
+  titleLocale: TitleLocale;
+}
+
 function formatBackLabel(label: string): string {
   return `← ${label}`;
 }
@@ -36,7 +44,13 @@ function formatCostRange(label: string, min: number | null, max: number | null):
   return `${label}: ${min ?? '—'}–${max ?? '—'} ₪`;
 }
 
-export function ConceptDetail({ concept }: { concept: SerializedConceptDetail }) {
+interface ConceptDetailProps {
+  concept: SerializedConceptDetail;
+  locale?: string;
+  vendorsByCategory?: Record<string, SerializedConceptVendor[]>;
+}
+
+export function ConceptDetail({ concept, locale = 'en', vendorsByCategory = {} }: ConceptDetailProps) {
   const t = useTranslations('Concepts');
   const tCategory = useTranslations('TaskCategory');
   const [selected, setSelected] = useState(concept.isSelected);
@@ -126,6 +140,20 @@ export function ConceptDetail({ concept }: { concept: SerializedConceptDetail })
               >
                 {added[el.id] ? `✓ ${t('added')}` : t('addToChecklist')}
               </button>
+              {vendorsByCategory[el.category]?.length ? (
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-muted">{t('vendorsForThis')}</span>
+                  {vendorsByCategory[el.category].map((vendor) => (
+                    <Link
+                      key={vendor.id}
+                      href={`/vendors/${vendor.id}`}
+                      className="rounded-card bg-background px-2 py-1 text-xs text-primary"
+                    >
+                      {resolveVendorTitle(vendor, locale)}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </article>
           ))}
         </div>

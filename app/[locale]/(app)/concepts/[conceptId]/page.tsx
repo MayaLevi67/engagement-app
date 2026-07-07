@@ -4,8 +4,9 @@ import { auth } from '@/lib/auth';
 import { getCurrentWedding } from '@/lib/wedding/queries';
 import { getConceptDetail, getWeddingConceptState } from '@/lib/concepts/queries';
 import { resolveConceptTitle } from '@/lib/concepts/title';
+import { getRecommendedVendors } from '@/lib/vendors/queries';
 import { redirect } from '@/lib/i18n/navigation';
-import { ConceptDetail, type SerializedConceptDetail } from './concept-detail';
+import { ConceptDetail, type SerializedConceptDetail, type SerializedConceptVendor } from './concept-detail';
 
 export default async function ConceptDetailPage({
   params,
@@ -25,6 +26,20 @@ export default async function ConceptDetailPage({
     getWeddingConceptState(wedding!.id),
   ]);
   if (!concept) notFound();
+
+  const categories = [...new Set(concept.elements.map((el) => el.category))];
+  const vendorsByCategory: Record<string, SerializedConceptVendor[]> = Object.fromEntries(
+    await Promise.all(
+      categories.map(async (category) => [
+        category,
+        (await getRecommendedVendors(wedding!, { category, limit: 3 })).map(
+          (v): SerializedConceptVendor => ({
+            id: v.id, name_en: v.name_en, name_he: v.name_he, titleLocale: v.titleLocale,
+          }),
+        ),
+      ]),
+    ),
+  );
 
   const pick = (he: string | null, en: string | null) =>
     locale === 'he' ? (he ?? en ?? '') : (en ?? he ?? '');
@@ -51,7 +66,7 @@ export default async function ConceptDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-6 sm:p-8">
-      <ConceptDetail concept={detail} />
+      <ConceptDetail concept={detail} locale={locale} vendorsByCategory={vendorsByCategory} />
     </main>
   );
 }
