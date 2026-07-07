@@ -94,4 +94,13 @@ describe('authorizeRoute', () => {
     expect(authorizeRoute({ pathname: '/budget', isLoggedIn: true, role: 'USER' }))
       .toEqual({ type: 'next' });
   });
+
+  it('redirects logged-out users away from /vendors', () => {
+    expect(authorizeRoute({ pathname: '/vendors', isLoggedIn: false, role: null }))
+      .toEqual({ type: 'redirect', to: '/login' });
+  });
+  it('allows logged-in users to reach /vendors', () => {
+    expect(authorizeRoute({ pathname: '/vendors', isLoggedIn: true, role: 'USER' }))
+      .toEqual({ type: 'next' });
+  });
 });
