@@ -20,7 +20,8 @@ import { getCurrentWedding } from '@/lib/wedding/queries';
 import { setTaskEstimatedCost } from '@/lib/actions/budget';
 import { setTaskStatus } from '@/lib/actions/checklist';
 import {
-  toggleShortlist, setQuoteAmount, linkQuoteToTask, pushQuoteToBudget, addPrivateVendor,
+  toggleShortlist, setQuoteAmount, setQuoteNotes, linkQuoteToTask, pushQuoteToBudget,
+  addPrivateVendor, editPrivateVendor, deletePrivateVendor,
 } from './vendors';
 
 beforeEach(() => {
@@ -95,5 +96,36 @@ describe('addPrivateVendor', () => {
   });
   it('rejects invalid input', async () => {
     expect(await addPrivateVendor({ name_en: '', name_he: '', category: 'MUSIC' })).toEqual({ ok: false, error: 'INVALID' });
+  });
+});
+
+describe('setQuoteNotes', () => {
+  it('rejects an over-length note', async () => {
+    expect(await setQuoteNotes('v1', 'x'.repeat(2001))).toEqual({ ok: false, error: 'INVALID' });
+    expect(prisma.vendorQuote.upsert).not.toHaveBeenCalled();
+  });
+});
+
+describe('editPrivateVendor', () => {
+  it('rejects a vendor that is not the couple\'s own', async () => {
+    (prisma.vendor.findFirst as Mock).mockResolvedValue(null);
+    expect(await editPrivateVendor('vX', { name_en: 'A', name_he: 'א', category: 'MUSIC' })).toEqual({ ok: false, error: 'NOT_FOUND' });
+    expect(prisma.vendor.update).not.toHaveBeenCalled();
+  });
+  it('propagates notes to the quote on success', async () => {
+    (prisma.vendor.findFirst as Mock).mockResolvedValue({ id: 'pv1' });
+    expect(
+      await editPrivateVendor('pv1', { name_en: 'A', name_he: 'א', category: 'MUSIC', notes: 'call back' }),
+    ).toEqual({ ok: true, id: 'pv1' });
+    expect(prisma.vendor.update).toHaveBeenCalled();
+    expect(prisma.vendorQuote.upsert).toHaveBeenCalled();
+  });
+});
+
+describe('deletePrivateVendor', () => {
+  it('rejects a vendor that is not the couple\'s own', async () => {
+    (prisma.vendor.findFirst as Mock).mockResolvedValue(null);
+    expect(await deletePrivateVendor('vX')).toEqual({ ok: false, error: 'NOT_FOUND' });
+    expect(prisma.vendor.delete).not.toHaveBeenCalled();
   });
 });

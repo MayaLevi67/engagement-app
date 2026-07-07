@@ -80,8 +80,10 @@ export async function setQuoteAmount(vendorId: string, amount: number | null): P
 export async function setQuoteNotes(vendorId: string, notes: string | null): Promise<VendorActionResult> {
   const w = await resolveWedding();
   if (!w.ok) return w;
+  const parsed = quoteInput.pick({ notes: true }).safeParse({ notes });
+  if (!parsed.success) return { ok: false, error: 'INVALID' };
   if (!(await visibleVendor(w.weddingId, vendorId))) return { ok: false, error: 'NOT_FOUND' };
-  await upsertQuote(w.weddingId, vendorId, { notes: notes?.trim() || null });
+  await upsertQuote(w.weddingId, vendorId, { notes: parsed.data.notes ?? null });
   return { ok: true };
 }
 
