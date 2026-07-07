@@ -116,8 +116,8 @@ model Wedding {
   favorites         ConceptFavorite[]
   avgGiftPerGuest   Int?
   budgetAllocations BudgetAllocation[]
-  vendors      Vendor[]
-  vendorQuotes VendorQuote[]
+  vendors           Vendor[]
+  vendorQuotes      VendorQuote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

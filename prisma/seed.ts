@@ -255,7 +255,7 @@ const vendors: VendorSeed[] = [
   {
     id: 'vendor-olive-catering', name_en: 'Olive & Thyme Catering', name_he: 'זית ותימין קייטרינג',
     description_en: 'Seasonal Mediterranean menus and grazing tables.',
-    description_he: 'תפריטים ים-תיכוniים עונתיים ושולחנות גרייזינג.',
+    description_he: 'תפריטים ים-תיכוניים עונתיים ושולחנות גרייזינג.',
     category: 'CATERING', city: 'Jerusalem', priceMin: 12000, priceMax: 40000,
     email: 'events@olive.example', phone: '+972500000003', website: 'https://olive.example',
     verified: false, isPremium: false, sortOrder: 30,
