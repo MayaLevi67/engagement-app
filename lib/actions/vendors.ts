@@ -38,7 +38,17 @@ export async function toggleShortlist(vendorId: string): Promise<VendorActionRes
     where: { weddingId_vendorId: { weddingId: w.weddingId, vendorId } },
   });
   if (existing) {
-    await prisma.vendorQuote.delete({ where: { id: existing.id } });
+    const isBare =
+      existing.status === 'CONSIDERING' &&
+      existing.amount == null &&
+      (existing.notes == null || existing.notes === '') &&
+      existing.taskId == null;
+    if (isBare) {
+      // Only a bare shortlist entry is safe to remove on a one-click card toggle.
+      // A quote that carries data (amount/notes/BOOKED/linked task) is preserved —
+      // removing it is a deliberate detail-page action, not an accidental toggle.
+      await prisma.vendorQuote.delete({ where: { id: existing.id } });
+    }
   } else {
     await prisma.vendorQuote.upsert({
       where: { weddingId_vendorId: { weddingId: w.weddingId, vendorId } },

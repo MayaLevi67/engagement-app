@@ -37,11 +37,21 @@ describe('toggleShortlist', () => {
     expect(await toggleShortlist('v1')).toEqual({ ok: true });
     expect(prisma.vendorQuote.upsert).toHaveBeenCalled();
   });
-  it('removes the quote when one exists', async () => {
+  it('removes a bare shortlist quote when one exists', async () => {
     (prisma.vendor.findFirst as Mock).mockResolvedValue({ id: 'v1' });
-    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1' });
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({
+      id: 'q1', status: 'CONSIDERING', amount: null, notes: null, taskId: null,
+    });
     expect(await toggleShortlist('v1')).toEqual({ ok: true });
     expect(prisma.vendorQuote.delete).toHaveBeenCalledWith({ where: { id: 'q1' } });
+  });
+  it('preserves a quote that carries data instead of deleting it', async () => {
+    (prisma.vendor.findFirst as Mock).mockResolvedValue({ id: 'v1' });
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({
+      id: 'q1', status: 'BOOKED', amount: 9000, notes: null, taskId: 't1',
+    });
+    expect(await toggleShortlist('v1')).toEqual({ ok: true });
+    expect(prisma.vendorQuote.delete).not.toHaveBeenCalled();
   });
   it('rejects a vendor the couple cannot see', async () => {
     (prisma.vendor.findFirst as Mock).mockResolvedValue(null);
