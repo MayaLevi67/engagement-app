@@ -62,4 +62,18 @@ describe('ConceptsAdmin', () => {
     // must not collapse the editor back to the list view.
     expect(screen.getByText('save')).toBeInTheDocument();
   });
+
+  it('shows an error and does not refresh when addImage fails', async () => {
+    addImageMock.mockResolvedValueOnce({ ok: false, error: 'INVALID' });
+    refreshMock.mockClear();
+    render(<ConceptsAdmin concepts={[baseConcept]} />);
+
+    fireEvent.click(screen.getByText('edit'));
+    const urlInput = screen.getByPlaceholderText('imageUrl');
+    fireEvent.change(urlInput, { target: { value: 'https://example.com/pic.jpg' } });
+    fireEvent.click(screen.getByText('addImage'));
+
+    expect(await screen.findByText('error')).toBeInTheDocument();
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
 });
