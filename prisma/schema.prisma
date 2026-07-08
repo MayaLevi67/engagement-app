@@ -72,6 +72,12 @@ enum VendorQuoteStatus {
   DECLINED
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -118,6 +124,9 @@ model Wedding {
   budgetAllocations BudgetAllocation[]
   vendors           Vendor[]
   vendorQuotes      VendorQuote[]
+
+  premiumUnlockedAt DateTime?
+  payments          Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -359,5 +368,20 @@ model VendorQuote {
   updatedAt DateTime          @updatedAt
 
   @@unique([weddingId, vendorId])
+  @@index([weddingId])
+}
+
+model Payment {
+  id                      String        @id @default(cuid())
+  weddingId               String
+  wedding                 Wedding       @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  stripeCheckoutSessionId String        @unique
+  stripePaymentIntentId   String?
+  status                  PaymentStatus @default(PENDING)
+  amount                  Int?
+  currency                String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
   @@index([weddingId])
 }
