@@ -1,7 +1,5 @@
 import { setRequestLocale } from 'next-intl/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { redirect } from '@/lib/i18n/navigation';
 import { VendorsAdmin, type SerializedAdminVendor } from './vendors-admin';
 
 export default async function AdminVendorsPage({
@@ -11,13 +9,6 @@ export default async function AdminVendorsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-
-  const session = await auth();
-  if (!session?.user?.id) redirect({ href: '/login', locale });
-  // The role is resolved from the live DB rather than the JWT/session claim,
-  // since the JWT role is stamped at login and can be stale.
-  const user = await prisma.user.findUnique({ where: { id: session!.user.id }, select: { role: true } });
-  if (user?.role !== 'ADMIN') redirect({ href: '/dashboard', locale });
 
   const vendors = await prisma.vendor.findMany({
     where: { weddingId: null },
@@ -52,9 +43,5 @@ export default async function AdminVendorsPage({
     })),
   }));
 
-  return (
-    <main className="mx-auto w-full max-w-4xl p-6 sm:p-8">
-      <VendorsAdmin vendors={serialized} />
-    </main>
-  );
+  return <VendorsAdmin vendors={serialized} />;
 }

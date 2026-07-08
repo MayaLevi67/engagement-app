@@ -40,7 +40,22 @@ export async function updateConcept(id: string, input: unknown): Promise<AdminRe
   if (!parsed.success) return { ok: false, error: 'INVALID' };
   const existing = await prisma.concept.findUnique({ where: { id }, select: { id: true } });
   if (!existing) return { ok: false, error: 'NOT_FOUND' };
-  await prisma.concept.update({ where: { id }, data: parsed.data });
+  // isPremium/active/sortOrder are owned by setConceptActive/setConceptPremium/reorderConcept.
+  // Write only content fields so a partial edit can't reset them via schema defaults.
+  const d = parsed.data;
+  await prisma.concept.update({
+    where: { id },
+    data: {
+      title_en: d.title_en,
+      title_he: d.title_he,
+      titleLocale: d.titleLocale,
+      tagline_en: d.tagline_en,
+      tagline_he: d.tagline_he,
+      description_en: d.description_en,
+      description_he: d.description_he,
+      palette: d.palette,
+    },
+  });
   return { ok: true, id };
 }
 

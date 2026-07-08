@@ -58,7 +58,18 @@
     "vendorsBody": "עיינו בספקים שתואמים לאזור ולתקציב שלכם.",
     "vendorsCta": "עיון בספקים"
   },
-  "Admin": { "placeholder": "אזור ניהול (למנהלים בלבד)" },
+  "Admin": {
+    "placeholder": "אזור ניהול (למנהלים בלבד)",
+    "panelTitle": "ניהול",
+    "backToApp": "חזרה לאפליקציה",
+    "overviewNav": "סקירה",
+    "overviewTitle": "סקירה",
+    "countActive": "{active} פעילים מתוך {total}",
+    "budgetCardTitle": "בסיס תקציב",
+    "budgetBalanced": "סך האחוזים הפעילים 100%.",
+    "budgetImbalanced": "סך האחוזים הפעילים {sum}% (צריך להיות 100%).",
+    "open": "פתחו"
+  },
   "AdminTemplates": {
     "title": "תבניות רשימת המשימות",
     "new": "תבנית חדשה",

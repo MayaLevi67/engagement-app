@@ -1,6 +1,4 @@
 import { setRequestLocale } from 'next-intl/server';
-import { auth } from '@/lib/auth';
-import { redirect } from '@/lib/i18n/navigation';
 import { getAllConcepts } from '@/lib/concepts/queries';
 import { ConceptsAdmin, type SerializedAdminConcept } from './concepts-admin';
 
@@ -11,11 +9,6 @@ export default async function AdminConceptsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-
-  const session = await auth();
-  // The proxy already gates `/admin` for non-admins; this is defense-in-depth
-  // in case the page is ever reached through another path.
-  if (session?.user?.role !== 'ADMIN') redirect({ href: '/dashboard', locale });
 
   const concepts = await getAllConcepts();
   const serialized: SerializedAdminConcept[] = concepts.map((c) => ({
@@ -53,9 +46,5 @@ export default async function AdminConceptsPage({
     })),
   }));
 
-  return (
-    <main className="mx-auto w-full max-w-5xl p-6 sm:p-8">
-      <ConceptsAdmin concepts={serialized} />
-    </main>
-  );
+  return <ConceptsAdmin concepts={serialized} />;
 }

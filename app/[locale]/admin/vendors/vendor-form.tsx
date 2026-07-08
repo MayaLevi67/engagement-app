@@ -245,16 +245,27 @@ function VendorImageEditor({
   t: ReturnType<typeof useTranslations>;
 }) {
   const [url, setUrl] = useState('');
+  const [error, setError] = useState(false);
 
   async function onAddImage() {
     if (!url.trim()) return;
-    await addVendorImage(vendor.id, { url: url.trim(), sortOrder: vendor.images.length });
+    setError(false);
+    const r = await addVendorImage(vendor.id, { url: url.trim(), sortOrder: vendor.images.length });
+    if (!r.ok) {
+      setError(true);
+      return;
+    }
     setUrl('');
     onChanged();
   }
 
   async function onDeleteImage(imageId: string) {
-    await deleteVendorImage(imageId);
+    setError(false);
+    const r = await deleteVendorImage(imageId);
+    if (!r.ok) {
+      setError(true);
+      return;
+    }
     onChanged();
   }
 
@@ -287,6 +298,7 @@ function VendorImageEditor({
           {t('addImage')}
         </button>
       </div>
+      {error ? <p className="text-sm text-red-600">{t('error')}</p> : null}
     </div>
   );
 }

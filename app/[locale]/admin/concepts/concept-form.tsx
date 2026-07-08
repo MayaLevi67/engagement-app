@@ -250,10 +250,16 @@ function NestedEditors({
   const [elTitleEn, setElTitleEn] = useState('');
   const [elTitleHe, setElTitleHe] = useState('');
   const [elCategory, setElCategory] = useState<TaskCategory>('OTHER');
+  const [error, setError] = useState(false);
 
   async function onAddImage() {
     if (!url.trim()) return;
-    await addImage(concept.id, { url: url.trim(), sortOrder: concept.images.length });
+    setError(false);
+    const r = await addImage(concept.id, { url: url.trim(), sortOrder: concept.images.length });
+    if (!r.ok) {
+      setError(true);
+      return;
+    }
     setUrl('');
     onChanged();
   }
@@ -282,7 +288,12 @@ function NestedEditors({
             <button
               type="button"
               onClick={async () => {
-                await deleteImage(im.id);
+                setError(false);
+                const r = await deleteImage(im.id);
+                if (!r.ok) {
+                  setError(true);
+                  return;
+                }
                 onChanged();
               }}
               className="text-red-600"
@@ -307,6 +318,7 @@ function NestedEditors({
             {t('addImage')}
           </button>
         </div>
+        {error ? <p className="text-sm text-red-600">{t('error')}</p> : null}
       </div>
 
       <div className="flex flex-col gap-2">

@@ -14,6 +14,7 @@ vi.mock('@/lib/db', () => ({
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import * as adminConcepts from './admin-concepts';
 import {
   createConcept,
   updateConcept,
@@ -101,5 +102,35 @@ describe('updateConcept', () => {
     asAdmin(true);
     (prisma.concept.findUnique as unknown as Mock).mockResolvedValue(null);
     expect(await updateConcept('cX', { title_en: 'A', title_he: 'ב' })).toEqual({ ok: false, error: 'NOT_FOUND' });
+  });
+});
+
+describe('updateConcept does not reset independently-managed flags', () => {
+  it('omits isPremium/active/sortOrder from the update when the payload omits them', async () => {
+    asAdmin(true);
+    (prisma.concept.findUnique as unknown as Mock).mockResolvedValue({ id: 'c1' });
+    await updateConcept('c1', { title_en: 'X', title_he: 'י', palette: ['#C9A227'] });
+    expect(prisma.concept.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({
+          isPremium: expect.anything(),
+          active: expect.anything(),
+          sortOrder: expect.anything(),
+        }),
+      }),
+    );
+  });
+});
+
+describe('export parity', () => {
+  it('every admin-concepts export is an admin-gated action (export parity)', () => {
+    expect(Object.keys(adminConcepts).sort()).toEqual(
+      [
+        'createConcept', 'updateConcept', 'deleteConcept', 'setConceptActive',
+        'setConceptPremium', 'reorderConcept', 'createElement', 'updateElement',
+        'deleteElement', 'reorderElement', 'addImage', 'updateImage', 'deleteImage',
+        'reorderImage',
+      ].sort(),
+    );
   });
 });
