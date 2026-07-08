@@ -24,6 +24,10 @@ vi.mock('@/lib/actions/checklist', () => ({
   setTaskReminder: vi.fn(async () => ({ ok: true })),
 }));
 
+vi.mock('@/lib/actions/premium', () => ({
+  startCheckout: vi.fn(async () => ({ ok: true, url: 'https://checkout.stripe.com/session' })),
+}));
+
 import { ChecklistView } from './checklist-view';
 
 const tasks: SerializedTask[] = [

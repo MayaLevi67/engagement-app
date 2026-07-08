@@ -8,6 +8,7 @@ import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '@/lib/checklist/schema';
 import { TaskRow } from './task-row';
 import { AddCustomTask } from './add-custom-task';
 import { TrashView } from './trash-view';
+import { UpgradeButton } from '../upgrade-button';
 
 export interface SerializedTask {
   id: string;
@@ -58,12 +59,14 @@ interface ChecklistViewProps {
   tasks: SerializedTask[];
   trashedTasks: SerializedTask[];
   counts: { done: number; total: number };
+  hiddenCount?: number;
 }
 
-export function ChecklistView({ locale, tasks, trashedTasks, counts }: ChecklistViewProps) {
+export function ChecklistView({ locale, tasks, trashedTasks, counts, hiddenCount = 0 }: ChecklistViewProps) {
   const t = useTranslations('Checklist');
   const tCategory = useTranslations('TaskCategory');
   const tPriority = useTranslations('TaskPriority');
+  const tPremium = useTranslations('Premium');
   const router = useRouter();
 
   const [groupMode, setGroupMode] = useState<GroupMode>('category');
@@ -260,6 +263,13 @@ export function ChecklistView({ locale, tasks, trashedTasks, counts }: Checklist
           ))
         )}
       </div>
+
+      {hiddenCount > 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-card bg-surface p-5 text-center shadow-sm">
+          <p className="text-sm text-muted">{tPremium('checklistMore', { count: hiddenCount })}</p>
+          <UpgradeButton />
+        </div>
+      ) : null}
     </div>
   );
 }

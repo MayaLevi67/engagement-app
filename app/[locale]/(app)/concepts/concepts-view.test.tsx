@@ -8,6 +8,9 @@ vi.mock('@/lib/i18n/navigation', () => ({
 vi.mock('@/lib/actions/concepts', () => ({
   toggleFavorite: vi.fn(), chooseConcept: vi.fn(), clearSelectedConcept: vi.fn(), addElementToChecklist: vi.fn(),
 }));
+vi.mock('@/lib/actions/premium', () => ({
+  startCheckout: vi.fn(async () => ({ ok: true, url: 'https://checkout.stripe.com/session' })),
+}));
 
 import { ConceptCard } from './concept-card';
 import { ConceptDetail } from './[conceptId]/concept-detail';
@@ -33,5 +36,21 @@ describe('ConceptDetail', () => {
     }} />);
     expect(screen.getByText('Two DJs')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /added/i })).toBeDisabled();
+  });
+
+  it('locks a premium concept for a free wedding and shows Unlock instead of Select/Add', () => {
+    render(<ConceptDetail
+      premium={false}
+      concept={{
+        id: 'c1', title: 'Old Money', tagline: '', description: 'Desc', palette: [], isPremium: true, isSelected: false,
+        images: [], elements: [
+          { id: 'el1', title: 'Two DJs', description: '', category: 'MUSIC', estCostMin: 6000, estCostMax: 14000, isAdded: false },
+        ],
+      }}
+    />);
+    expect(screen.getByText('lockedConcept')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'select' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'addToChecklist' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'unlockCta' }).length).toBeGreaterThan(0);
   });
 });

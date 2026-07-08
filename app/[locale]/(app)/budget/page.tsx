@@ -6,7 +6,9 @@ import { redirect } from '@/lib/i18n/navigation';
 import { rollupTasks, sumConceptRanges } from '@/lib/budget/rollup';
 import { optimizeBudget } from '@/lib/budget/optimize';
 import { estimateGifts } from '@/lib/budget/gifts';
+import { isPremium } from '@/lib/premium/entitlement';
 import { BudgetView } from './budget-view';
+import { Paywall } from './paywall';
 
 export default async function BudgetPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -16,6 +18,14 @@ export default async function BudgetPage({ params }: { params: Promise<{ locale:
   if (!session?.user?.id) redirect({ href: '/login', locale });
   const wedding = await getCurrentWedding(session!.user.id);
   if (!wedding) redirect({ href: '/onboarding', locale });
+
+  if (!isPremium(wedding!)) {
+    return (
+      <main className="mx-auto w-full max-w-3xl p-6 sm:p-8">
+        <Paywall />
+      </main>
+    );
+  }
 
   const [tasks, allocations, baselineRows, selectedConcept] = await Promise.all([
     prisma.task.findMany({

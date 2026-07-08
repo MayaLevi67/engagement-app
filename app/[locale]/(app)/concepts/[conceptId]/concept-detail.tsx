@@ -6,6 +6,7 @@ import type { TaskCategory, TitleLocale } from '@prisma/client';
 import { Link } from '@/lib/i18n/navigation';
 import { chooseConcept, clearSelectedConcept, addElementToChecklist } from '@/lib/actions/concepts';
 import { resolveVendorTitle } from '@/lib/vendors/title';
+import { UpgradeButton } from '../../upgrade-button';
 
 export interface SerializedElement {
   id: string;
@@ -48,15 +49,18 @@ interface ConceptDetailProps {
   concept: SerializedConceptDetail;
   locale?: string;
   vendorsByCategory?: Record<string, SerializedConceptVendor[]>;
+  premium?: boolean;
 }
 
-export function ConceptDetail({ concept, locale = 'en', vendorsByCategory = {} }: ConceptDetailProps) {
+export function ConceptDetail({ concept, locale = 'en', vendorsByCategory = {}, premium = false }: ConceptDetailProps) {
   const t = useTranslations('Concepts');
   const tCategory = useTranslations('TaskCategory');
+  const tPremium = useTranslations('Premium');
   const [selected, setSelected] = useState(concept.isSelected);
   const [added, setAdded] = useState<Record<string, boolean>>(
     Object.fromEntries(concept.elements.map((e) => [e.id, e.isAdded])),
   );
+  const locked = concept.isPremium && !premium;
 
   async function onToggleSelect() {
     const prev = selected;
@@ -91,14 +95,23 @@ export function ConceptDetail({ concept, locale = 'en', vendorsByCategory = {} }
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-[minmax(0,16rem)_1fr]">
         <aside className="flex flex-col items-center gap-3 rounded-card bg-surface p-5 text-center">
           <h2 className="font-display text-lg text-text">{t('makeItYours')}</h2>
-          <p className="text-xs text-muted">{t('makeItYoursBody')}</p>
-          <button
-            type="button"
-            onClick={onToggleSelect}
-            className="rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
-          >
-            {selected ? t('clearSelection') : t('select')}
-          </button>
+          {locked ? (
+            <>
+              <p className="text-xs text-muted">{tPremium('lockedConcept')}</p>
+              <UpgradeButton />
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-muted">{t('makeItYoursBody')}</p>
+              <button
+                type="button"
+                onClick={onToggleSelect}
+                className="rounded-card bg-primary px-4 py-2 text-sm font-medium text-background"
+              >
+                {selected ? t('clearSelection') : t('select')}
+              </button>
+            </>
+          )}
         </aside>
 
         <section className="flex flex-col gap-4">
@@ -132,14 +145,18 @@ export function ConceptDetail({ concept, locale = 'en', vendorsByCategory = {} }
                   {formatCostRange(t('estCost'), el.estCostMin, el.estCostMax)}
                 </p>
               ) : null}
-              <button
-                type="button"
-                onClick={() => onAdd(el.id)}
-                disabled={added[el.id]}
-                className="mt-1 self-start rounded-card border border-muted/30 px-3 py-1.5 text-sm text-text disabled:opacity-60"
-              >
-                {added[el.id] ? `✓ ${t('added')}` : t('addToChecklist')}
-              </button>
+              {locked ? (
+                <UpgradeButton className="mt-1 self-start rounded-card border border-muted/30 px-3 py-1.5 text-sm text-text" />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onAdd(el.id)}
+                  disabled={added[el.id]}
+                  className="mt-1 self-start rounded-card border border-muted/30 px-3 py-1.5 text-sm text-text disabled:opacity-60"
+                >
+                  {added[el.id] ? `✓ ${t('added')}` : t('addToChecklist')}
+                </button>
+              )}
               {vendorsByCategory[el.category]?.length ? (
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <span className="text-xs text-muted">{t('vendorsForThis')}</span>

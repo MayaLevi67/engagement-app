@@ -8,6 +8,7 @@ import { deletePrivateVendor } from '@/lib/actions/vendors';
 import { resolveVendorTitle } from '@/lib/vendors/title';
 import { QuotePanel, type SerializedQuote, type QuoteTask } from './quote-panel';
 import { EditPrivateVendor } from './edit-private-vendor';
+import { UpgradeButton } from '../../upgrade-button';
 
 export interface SerializedVendorDetail {
   id: string;
@@ -33,6 +34,7 @@ interface VendorDetailProps {
   vendor: SerializedVendorDetail;
   quote: SerializedQuote | null;
   tasks: QuoteTask[];
+  premium?: boolean;
 }
 
 // '←' isn't in the eslint `react/jsx-no-literals` allowedStrings list (only
@@ -42,13 +44,15 @@ function formatBackLabel(label: string): string {
   return `← ${label}`;
 }
 
-export function VendorDetail({ locale, vendor, quote, tasks }: VendorDetailProps) {
+export function VendorDetail({ locale, vendor, quote, tasks, premium = false }: VendorDetailProps) {
   const t = useTranslations('Vendors');
   const tCategory = useTranslations('TaskCategory');
+  const tPremium = useTranslations('Premium');
   const router = useRouter();
 
   const displayName = resolveVendorTitle(vendor, locale);
   const fmt = (n: number) => `₪${n.toLocaleString(locale)}`;
+  const locked = vendor.isPremium && !premium;
 
   const [isEditing, setIsEditing] = useState(false);
   const [pending, setPending] = useState(false);
@@ -154,7 +158,14 @@ export function VendorDetail({ locale, vendor, quote, tasks }: VendorDetailProps
         </div>
       )}
 
-      <QuotePanel vendorId={vendor.id} quote={quote} tasks={tasks} onChanged={refresh} />
+      {locked ? (
+        <section className="flex flex-col items-center gap-3 rounded-card bg-surface p-6 text-center shadow-sm">
+          <p className="text-sm text-muted">{tPremium('lockedVendor')}</p>
+          <UpgradeButton />
+        </section>
+      ) : (
+        <QuotePanel vendorId={vendor.id} quote={quote} tasks={tasks} onChanged={refresh} />
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { getCurrentWedding } from '@/lib/wedding/queries';
 import { getTasks, getTrashedTasks } from '@/lib/checklist/queries';
 import { seedTasksForWedding } from '@/lib/checklist/copy';
 import { redirect } from '@/lib/i18n/navigation';
+import { isPremium, capChecklist } from '@/lib/premium/entitlement';
 import { ChecklistView, type SerializedTask } from './checklist-view';
 import type { Task } from '@prisma/client';
 
@@ -59,14 +60,17 @@ export default async function ChecklistPage({
   ]);
 
   const done = tasks.filter((t) => t.status === 'DONE').length;
+  const premium = isPremium(wedding!);
+  const { tasks: shown, hiddenCount } = capChecklist(tasks, premium);
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6 sm:p-8">
       <ChecklistView
         locale={locale}
-        tasks={tasks.map(serializeTask)}
+        tasks={shown.map(serializeTask)}
         trashedTasks={trashedTasks.map(serializeTask)}
         counts={{ done, total: tasks.length }}
+        hiddenCount={hiddenCount}
       />
     </main>
   );
