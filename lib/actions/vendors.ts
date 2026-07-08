@@ -7,10 +7,12 @@ import { getCurrentWedding } from '@/lib/wedding/queries';
 import { privateVendorSchema, quoteInput } from '@/lib/vendors/schema';
 import { setTaskEstimatedCost } from '@/lib/actions/budget';
 import { setTaskStatus } from '@/lib/actions/checklist';
+import { requireWedding, requirePremiumWedding } from '@/lib/premium/gate';
+import { isPremium } from '@/lib/premium/entitlement';
 
 export type VendorActionResult =
   | { ok: true; id?: string }
-  | { ok: false; error: 'UNAUTHENTICATED' | 'INVALID' | 'NOT_FOUND' };
+  | { ok: false; error: 'UNAUTHENTICATED' | 'INVALID' | 'NOT_FOUND' | 'PREMIUM_REQUIRED' };
 
 async function resolveWedding(): Promise<
   { ok: true; weddingId: string } | { ok: false; error: 'UNAUTHENTICATED' | 'NOT_FOUND' }
@@ -26,16 +28,18 @@ async function resolveWedding(): Promise<
 async function visibleVendor(weddingId: string, vendorId: string) {
   return prisma.vendor.findFirst({
     where: { id: vendorId, OR: [{ weddingId: null }, { weddingId }] },
-    select: { id: true },
+    select: { id: true, isPremium: true },
   });
 }
 
 export async function toggleShortlist(vendorId: string): Promise<VendorActionResult> {
-  const w = await resolveWedding();
-  if (!w.ok) return w;
-  if (!(await visibleVendor(w.weddingId, vendorId))) return { ok: false, error: 'NOT_FOUND' };
+  const g = await requireWedding();
+  if (!g.ok) return g;
+  const vendor = await visibleVendor(g.wedding.id, vendorId);
+  if (!vendor) return { ok: false, error: 'NOT_FOUND' };
+  if (vendor.isPremium && !isPremium(g.wedding)) return { ok: false, error: 'PREMIUM_REQUIRED' };
   const existing = await prisma.vendorQuote.findUnique({
-    where: { weddingId_vendorId: { weddingId: w.weddingId, vendorId } },
+    where: { weddingId_vendorId: { weddingId: g.wedding.id, vendorId } },
   });
   if (existing) {
     const isBare =
@@ -51,8 +55,8 @@ export async function toggleShortlist(vendorId: string): Promise<VendorActionRes
     }
   } else {
     await prisma.vendorQuote.upsert({
-      where: { weddingId_vendorId: { weddingId: w.weddingId, vendorId } },
-      create: { weddingId: w.weddingId, vendorId, status: 'CONSIDERING' },
+      where: { weddingId_vendorId: { weddingId: g.wedding.id, vendorId } },
+      create: { weddingId: g.wedding.id, vendorId, status: 'CONSIDERING' },
       update: {},
     });
   }
@@ -68,52 +72,60 @@ async function upsertQuote(weddingId: string, vendorId: string, data: Record<str
 }
 
 export async function setQuoteStatus(vendorId: string, status: VendorQuoteStatus): Promise<VendorActionResult> {
-  const w = await resolveWedding();
-  if (!w.ok) return w;
+  const g = await requireWedding();
+  if (!g.ok) return g;
   const parsed = quoteInput.pick({ status: true }).safeParse({ status });
   if (!parsed.success) return { ok: false, error: 'INVALID' };
-  if (!(await visibleVendor(w.weddingId, vendorId))) return { ok: false, error: 'NOT_FOUND' };
-  await upsertQuote(w.weddingId, vendorId, { status: parsed.data.status });
+  const vendor = await visibleVendor(g.wedding.id, vendorId);
+  if (!vendor) return { ok: false, error: 'NOT_FOUND' };
+  if (vendor.isPremium && !isPremium(g.wedding)) return { ok: false, error: 'PREMIUM_REQUIRED' };
+  await upsertQuote(g.wedding.id, vendorId, { status: parsed.data.status });
   return { ok: true };
 }
 
 export async function setQuoteAmount(vendorId: string, amount: number | null): Promise<VendorActionResult> {
-  const w = await resolveWedding();
-  if (!w.ok) return w;
+  const g = await requireWedding();
+  if (!g.ok) return g;
   const parsed = quoteInput.pick({ amount: true }).safeParse({ amount });
   if (!parsed.success) return { ok: false, error: 'INVALID' };
-  if (!(await visibleVendor(w.weddingId, vendorId))) return { ok: false, error: 'NOT_FOUND' };
-  await upsertQuote(w.weddingId, vendorId, { amount: parsed.data.amount ?? null });
+  const vendor = await visibleVendor(g.wedding.id, vendorId);
+  if (!vendor) return { ok: false, error: 'NOT_FOUND' };
+  if (vendor.isPremium && !isPremium(g.wedding)) return { ok: false, error: 'PREMIUM_REQUIRED' };
+  await upsertQuote(g.wedding.id, vendorId, { amount: parsed.data.amount ?? null });
   return { ok: true };
 }
 
 export async function setQuoteNotes(vendorId: string, notes: string | null): Promise<VendorActionResult> {
-  const w = await resolveWedding();
-  if (!w.ok) return w;
+  const g = await requireWedding();
+  if (!g.ok) return g;
   const parsed = quoteInput.pick({ notes: true }).safeParse({ notes });
   if (!parsed.success) return { ok: false, error: 'INVALID' };
-  if (!(await visibleVendor(w.weddingId, vendorId))) return { ok: false, error: 'NOT_FOUND' };
-  await upsertQuote(w.weddingId, vendorId, { notes: parsed.data.notes ?? null });
+  const vendor = await visibleVendor(g.wedding.id, vendorId);
+  if (!vendor) return { ok: false, error: 'NOT_FOUND' };
+  if (vendor.isPremium && !isPremium(g.wedding)) return { ok: false, error: 'PREMIUM_REQUIRED' };
+  await upsertQuote(g.wedding.id, vendorId, { notes: parsed.data.notes ?? null });
   return { ok: true };
 }
 
 export async function linkQuoteToTask(vendorId: string, taskId: string | null): Promise<VendorActionResult> {
-  const w = await resolveWedding();
-  if (!w.ok) return w;
-  if (!(await visibleVendor(w.weddingId, vendorId))) return { ok: false, error: 'NOT_FOUND' };
+  const g = await requireWedding();
+  if (!g.ok) return g;
+  const vendor = await visibleVendor(g.wedding.id, vendorId);
+  if (!vendor) return { ok: false, error: 'NOT_FOUND' };
+  if (vendor.isPremium && !isPremium(g.wedding)) return { ok: false, error: 'PREMIUM_REQUIRED' };
   if (taskId) {
-    const task = await prisma.task.findFirst({ where: { id: taskId, weddingId: w.weddingId }, select: { id: true } });
+    const task = await prisma.task.findFirst({ where: { id: taskId, weddingId: g.wedding.id }, select: { id: true } });
     if (!task) return { ok: false, error: 'NOT_FOUND' };
   }
-  await upsertQuote(w.weddingId, vendorId, { taskId });
+  await upsertQuote(g.wedding.id, vendorId, { taskId });
   return { ok: true };
 }
 
 export async function pushQuoteToBudget(vendorId: string, opts: { paid: boolean }): Promise<VendorActionResult> {
-  const w = await resolveWedding();
-  if (!w.ok) return w;
+  const g = await requirePremiumWedding();
+  if (!g.ok) return g;
   const quote = await prisma.vendorQuote.findUnique({
-    where: { weddingId_vendorId: { weddingId: w.weddingId, vendorId } },
+    where: { weddingId_vendorId: { weddingId: g.wedding.id, vendorId } },
     select: { amount: true, taskId: true },
   });
   if (!quote) return { ok: false, error: 'NOT_FOUND' };

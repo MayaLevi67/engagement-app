@@ -389,5 +389,18 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "error": "Something went wrong. Please try again."
+  },
+  "Premium": {
+    "unlockCta": "Unlock Premium",
+    "upgradeCardTitle": "Unlock full planning power",
+    "upgradeCardBody": "Go Premium for unlimited checklist tasks, every concept, and every vendor.",
+    "budgetPaywallTitle": "Your budget planner is a Premium feature",
+    "budgetPaywallBody": "Upgrade to build your full budget, auto-split by category, and track every payment.",
+    "checklistMore": "+{count} more tasks — unlock Premium",
+    "lockedConcept": "This concept is a Premium feature",
+    "lockedVendor": "This vendor is a Premium feature",
+    "confirming": "Confirming your payment…",
+    "premiumActive": "Premium ✓",
+    "checkoutError": "Something went wrong starting checkout. Please try again."
   }
 }

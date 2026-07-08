@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { test, expect, type Page } from '@playwright/test';
+import { prisma } from '../lib/db';
 
 function uniqueEmail() {
   return `e2e-vendors-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -37,8 +39,8 @@ async function finishOnboarding(page: Page) {
 }
 
 /** Registers a fresh couple and completes onboarding minimally, landing on /dashboard. */
-async function registerAndOnboard(page: Page) {
-  await registerAndLogin(page, uniqueEmail());
+async function registerAndOnboard(page: Page, email: string) {
+  await registerAndLogin(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await fillNamesAndContinue(page);
   await skipRemainingSteps(page);
@@ -46,9 +48,17 @@ async function registerAndOnboard(page: Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
+/** Budget is a premium feature (see e2e/premium.spec.ts) — promote the test couple. */
+async function makePremium(email: string) {
+  const wedding = (await prisma.user.findUnique({ where: { email }, include: { wedding: true } }))?.wedding;
+  await prisma.wedding.update({ where: { id: wedding!.id }, data: { premiumUnlockedAt: new Date() } });
+}
+
 test.describe('Vendors', () => {
   test('browse, shortlist, quote, book, push a paid quote into the budget', async ({ page }) => {
-    await registerAndOnboard(page);
+    const email = uniqueEmail();
+    await registerAndOnboard(page, email);
+    await makePremium(email);
 
     // A budget is needed for the committed rollup to be meaningful.
     await page.goto('/budget');
@@ -82,7 +92,7 @@ test.describe('Vendors', () => {
   });
 
   test('a private vendor is visible only to its couple', async ({ page }) => {
-    await registerAndOnboard(page);
+    await registerAndOnboard(page, uniqueEmail());
     await page.goto('/vendors');
     await page.getByRole('button', { name: /add your own vendor|הוספת ספק משלכם/i }).click();
     await page.getByLabel(/name|שם/i).first().fill('Cousin Dan DJ');
@@ -92,7 +102,7 @@ test.describe('Vendors', () => {
     // A second, unrelated couple never sees it in their own directory.
     const otherContext = await page.context().browser()!.newContext({ locale: 'he-IL' });
     const otherPage = await otherContext.newPage();
-    await registerAndOnboard(otherPage);
+    await registerAndOnboard(otherPage, uniqueEmail());
     await otherPage.goto('/vendors');
     await expect(otherPage.getByText('Cousin Dan DJ')).toHaveCount(0);
     await otherContext.close();
@@ -102,4 +112,8 @@ test.describe('Vendors', () => {
     await page.goto('/vendors');
     await expect(page).toHaveURL(/\/login/);
   });
+});
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
 });

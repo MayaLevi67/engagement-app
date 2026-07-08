@@ -6,6 +6,7 @@ import type { TaskCategory, TitleLocale } from '@prisma/client';
 import { Link } from '@/lib/i18n/navigation';
 import { toggleShortlist } from '@/lib/actions/vendors';
 import { resolveVendorTitle } from '@/lib/vendors/title';
+import { UpgradeButton } from '../upgrade-button';
 
 export interface SerializedVendor {
   id: string;
@@ -17,13 +18,15 @@ export interface SerializedVendor {
 }
 
 export function VendorCard({
-  locale, vendor, shortlisted, onChanged,
-}: { locale: string; vendor: SerializedVendor; shortlisted: boolean; onChanged: () => void }) {
+  locale, vendor, shortlisted, onChanged, premium = false,
+}: { locale: string; vendor: SerializedVendor; shortlisted: boolean; onChanged: () => void; premium?: boolean }) {
   const t = useTranslations('Vendors');
   const tCategory = useTranslations('TaskCategory');
+  const tPremium = useTranslations('Premium');
   const [pending, setPending] = useState(false);
   const name = resolveVendorTitle(vendor, locale);
   const fmt = (n: number) => `₪${n.toLocaleString(locale)}`;
+  const locked = vendor.isPremium && !premium;
 
   async function toggle() {
     setPending(true);
@@ -36,10 +39,15 @@ export function VendorCard({
     <div className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <Link href={`/vendors/${vendor.id}`} className="font-display text-lg text-text">{name}</Link>
-        <button type="button" disabled={pending} onClick={toggle} className="text-sm text-primary">
-          {shortlisted ? t('shortlisted') : t('shortlist')}
-        </button>
+        {locked ? (
+          <UpgradeButton className="text-sm text-primary" />
+        ) : (
+          <button type="button" disabled={pending} onClick={toggle} className="text-sm text-primary">
+            {shortlisted ? t('shortlisted') : t('shortlist')}
+          </button>
+        )}
       </div>
+      {locked ? <p className="text-xs text-muted">{tPremium('lockedVendor')}</p> : null}
       <div className="flex flex-wrap gap-2 text-xs text-muted">
         <span>{tCategory(vendor.category)}</span>
         {vendor.city ? <span>· {vendor.city}</span> : null}

@@ -20,14 +20,14 @@ import { getCurrentWedding } from '@/lib/wedding/queries';
 import { setTaskEstimatedCost } from '@/lib/actions/budget';
 import { setTaskStatus } from '@/lib/actions/checklist';
 import {
-  toggleShortlist, setQuoteAmount, setQuoteNotes, linkQuoteToTask, pushQuoteToBudget,
+  toggleShortlist, setQuoteStatus, setQuoteAmount, setQuoteNotes, linkQuoteToTask, pushQuoteToBudget,
   addPrivateVendor, editPrivateVendor, deletePrivateVendor,
 } from './vendors';
 
 beforeEach(() => {
   vi.clearAllMocks();
   (auth as unknown as Mock).mockResolvedValue({ user: { id: 'u1' } });
-  (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1' });
+  (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: new Date() });
 });
 
 describe('toggleShortlist', () => {
@@ -137,5 +137,39 @@ describe('deletePrivateVendor', () => {
     (prisma.vendor.findFirst as Mock).mockResolvedValue(null);
     expect(await deletePrivateVendor('vX')).toEqual({ ok: false, error: 'NOT_FOUND' });
     expect(prisma.vendor.delete).not.toHaveBeenCalled();
+  });
+});
+
+describe('premium-vendor gating', () => {
+  // Each of these acts on a single loaded vendor; a premium vendor is paywalled
+  // for a free couple, but a non-premium vendor stays free.
+  const gated: Array<[string, () => Promise<unknown>]> = [
+    ['toggleShortlist', () => toggleShortlist('v1')],
+    ['setQuoteStatus', () => setQuoteStatus('v1', 'CONSIDERING')],
+    ['setQuoteAmount', () => setQuoteAmount('v1', 8000)],
+    ['setQuoteNotes', () => setQuoteNotes('v1', 'hi')],
+    ['linkQuoteToTask', () => linkQuoteToTask('v1', null)],
+  ];
+
+  it.each(gated)('%s rejects a premium vendor for a free wedding', async (_name, run) => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    (prisma.vendor.findFirst as Mock).mockResolvedValue({ id: 'v1', isPremium: true });
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue(null);
+    expect(await run()).toEqual({ ok: false, error: 'PREMIUM_REQUIRED' });
+    expect(prisma.vendorQuote.upsert).not.toHaveBeenCalled();
+    expect(prisma.vendorQuote.delete).not.toHaveBeenCalled();
+  });
+
+  it.each(gated)('%s still works on a non-premium vendor for a free wedding', async (_name, run) => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    (prisma.vendor.findFirst as Mock).mockResolvedValue({ id: 'v1', isPremium: false });
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue(null);
+    expect(await run()).toEqual({ ok: true });
+  });
+
+  it('pushQuoteToBudget rejects a free wedding (it writes budget)', async () => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    expect(await pushQuoteToBudget('v1', { paid: false })).toEqual({ ok: false, error: 'PREMIUM_REQUIRED' });
+    expect(prisma.vendorQuote.findUnique).not.toHaveBeenCalled();
   });
 });

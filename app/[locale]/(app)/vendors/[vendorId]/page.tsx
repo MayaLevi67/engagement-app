@@ -6,6 +6,7 @@ import { getVendorDetail } from '@/lib/vendors/queries';
 import { getTasks } from '@/lib/checklist/queries';
 import { resolveTaskTitle } from '@/lib/checklist/title';
 import { redirect } from '@/lib/i18n/navigation';
+import { isPremium } from '@/lib/premium/entitlement';
 import { VendorDetail, type SerializedVendorDetail } from './vendor-detail';
 import type { SerializedQuote, QuoteTask } from './quote-panel';
 
@@ -62,7 +63,13 @@ export default async function VendorDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6 sm:p-8">
-      <VendorDetail locale={locale} vendor={serializedVendor} quote={serializedQuote} tasks={serializedTasks} />
+      <VendorDetail
+        locale={locale}
+        vendor={serializedVendor}
+        quote={serializedQuote}
+        tasks={serializedTasks}
+        premium={isPremium(wedding!)}
+      />
     </main>
   );
 }

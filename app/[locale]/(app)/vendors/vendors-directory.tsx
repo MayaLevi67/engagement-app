@@ -24,9 +24,10 @@ interface VendorsDirectoryProps {
   vendors: SerializedVendor[];
   shortlistedIds: string[];
   filters: DirectoryFiltersValue;
+  premium?: boolean;
 }
 
-export function VendorsDirectory({ locale, matches, vendors, shortlistedIds, filters }: VendorsDirectoryProps) {
+export function VendorsDirectory({ locale, matches, vendors, shortlistedIds, filters, premium = false }: VendorsDirectoryProps) {
   const t = useTranslations('Vendors');
   const tCategory = useTranslations('TaskCategory');
   const router = useRouter();
@@ -88,6 +89,7 @@ export function VendorsDirectory({ locale, matches, vendors, shortlistedIds, fil
                 vendor={vendor}
                 shortlisted={shortlisted.has(vendor.id)}
                 onChanged={refresh}
+                premium={premium}
               />
             ))}
           </div>
@@ -171,6 +173,7 @@ export function VendorsDirectory({ locale, matches, vendors, shortlistedIds, fil
                 vendor={vendor}
                 shortlisted={shortlisted.has(vendor.id)}
                 onChanged={refresh}
+                premium={premium}
               />
             ))}
           </div>

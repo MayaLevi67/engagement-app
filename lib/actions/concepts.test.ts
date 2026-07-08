@@ -27,7 +27,7 @@ const authed = { user: { id: 'u1' } };
 beforeEach(() => {
   vi.clearAllMocks();
   (auth as unknown as Mock).mockResolvedValue(authed);
-  (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', weddingDate: null });
+  (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', weddingDate: null, premiumUnlockedAt: new Date() });
 });
 
 describe('chooseConcept', () => {
@@ -116,7 +116,7 @@ describe('toggleFavorite', () => {
 });
 
 describe('addElementToChecklist', () => {
-  const element = { id: 'el1', conceptId: 'c1', title_en: 'Two DJs', title_he: 'שני תקליטנים', titleLocale: 'AUTO', category: 'MUSIC' };
+  const element = { id: 'el1', conceptId: 'c1', title_en: 'Two DJs', title_he: 'שני תקליטנים', titleLocale: 'AUTO', category: 'MUSIC', concept: { isPremium: false } };
 
   it('rejects when unauthenticated', async () => {
     (auth as unknown as Mock).mockResolvedValue(null);
@@ -168,5 +168,50 @@ describe('addElementToChecklist', () => {
     expect(await addElementToChecklist('el1')).toEqual({ ok: false, error: 'NOT_FOUND' });
     expect(prisma.conceptElement.findUnique).not.toHaveBeenCalled();
     expect(prisma.task.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('premium-concept gating', () => {
+  // Premium concepts/elements are paywalled for a free couple; free ones stay open.
+  it('chooseConcept rejects a premium concept for a free wedding', async () => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    (prisma.concept.findUnique as unknown as Mock).mockResolvedValue({ id: 'c1', active: true, isPremium: true });
+    expect(await chooseConcept('c1')).toEqual({ ok: false, error: 'PREMIUM_REQUIRED' });
+    expect(prisma.wedding.update).not.toHaveBeenCalled();
+  });
+
+  it('chooseConcept allows a non-premium concept for a free wedding', async () => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    (prisma.concept.findUnique as unknown as Mock).mockResolvedValue({ id: 'c1', active: true, isPremium: false });
+    expect(await chooseConcept('c1')).toEqual({ ok: true });
+    expect(prisma.wedding.update).toHaveBeenCalled();
+  });
+
+  it('chooseConcept allows a premium concept for a premium wedding', async () => {
+    (prisma.concept.findUnique as unknown as Mock).mockResolvedValue({ id: 'c1', active: true, isPremium: true });
+    expect(await chooseConcept('c1')).toEqual({ ok: true });
+    expect(prisma.wedding.update).toHaveBeenCalled();
+  });
+
+  it('addElementToChecklist rejects a premium concept element for a free wedding', async () => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    (prisma.conceptElement.findUnique as unknown as Mock).mockResolvedValue({
+      id: 'el1', conceptId: 'c1', title_en: 'x', title_he: 'x', titleLocale: 'AUTO', category: 'MUSIC',
+      concept: { isPremium: true },
+    });
+    expect(await addElementToChecklist('el1')).toEqual({ ok: false, error: 'PREMIUM_REQUIRED' });
+    expect(prisma.task.create).not.toHaveBeenCalled();
+  });
+
+  it('addElementToChecklist allows a non-premium concept element for a free wedding', async () => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    (prisma.conceptElement.findUnique as unknown as Mock).mockResolvedValue({
+      id: 'el1', conceptId: 'c1', title_en: 'x', title_he: 'x', titleLocale: 'AUTO', category: 'MUSIC',
+      concept: { isPremium: false },
+    });
+    (prisma.task.findFirst as unknown as Mock).mockResolvedValue(null);
+    (prisma.task.aggregate as unknown as Mock).mockResolvedValue({ _max: { sortOrder: null } });
+    expect(await addElementToChecklist('el1')).toEqual({ ok: true });
+    expect(prisma.task.create).toHaveBeenCalled();
   });
 });

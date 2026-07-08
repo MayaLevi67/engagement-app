@@ -5,6 +5,7 @@ import { getCurrentWedding } from '@/lib/wedding/queries';
 import { getDirectoryVendors, getRecommendedVendors, getWeddingQuotes } from '@/lib/vendors/queries';
 import { CATEGORY_OPTIONS } from '@/lib/checklist/schema';
 import { redirect } from '@/lib/i18n/navigation';
+import { isPremium } from '@/lib/premium/entitlement';
 import { VendorsDirectory } from './vendors-directory';
 import type { SerializedVendor } from './vendor-card';
 
@@ -61,6 +62,7 @@ export default async function VendorsPage({
         vendors={vendors.map(serialize)}
         shortlistedIds={quotes.map((q) => q.vendorId)}
         filters={{ category: category ?? '', city: sp.city ?? '', maxPrice: sp.maxPrice ?? '' }}
+        premium={isPremium(wedding!)}
       />
     </main>
   );

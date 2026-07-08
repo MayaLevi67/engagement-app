@@ -16,6 +16,9 @@ vi.mock('@/lib/i18n/navigation', () => ({
 vi.mock('@/lib/actions/vendors', () => ({
   toggleShortlist: vi.fn(async () => ({ ok: true })),
 }));
+vi.mock('@/lib/actions/premium', () => ({
+  startCheckout: vi.fn(async () => ({ ok: true, url: 'https://checkout.stripe.com/session' })),
+}));
 
 import { VendorCard } from './vendor-card';
 
@@ -45,5 +48,16 @@ describe('VendorCard', () => {
   it('hides the Verified badge for an unverified vendor', () => {
     renderCard({ ...base, vendor: { ...base.vendor, verified: false } });
     expect(screen.queryByText('Verified')).toBeNull();
+  });
+  it('locks a premium vendor for a free wedding and shows Unlock instead of Shortlist', () => {
+    renderCard({ ...base, vendor: { ...base.vendor, isPremium: true }, premium: false });
+    expect(screen.queryByText(en.Vendors.shortlist)).toBeNull();
+    expect(screen.getByRole('button', { name: en.Premium.unlockCta })).toBeInTheDocument();
+    expect(screen.getByText(en.Premium.lockedVendor)).toBeInTheDocument();
+  });
+  it('does not lock a premium vendor for a premium wedding', () => {
+    renderCard({ ...base, vendor: { ...base.vendor, isPremium: true }, premium: true });
+    expect(screen.getByText(en.Vendors.shortlist)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: en.Premium.unlockCta })).toBeNull();
   });
 });

@@ -6,6 +6,7 @@ import { getConceptDetail, getWeddingConceptState } from '@/lib/concepts/queries
 import { resolveConceptTitle } from '@/lib/concepts/title';
 import { getRecommendedVendors } from '@/lib/vendors/queries';
 import { redirect } from '@/lib/i18n/navigation';
+import { isPremium } from '@/lib/premium/entitlement';
 import { ConceptDetail, type SerializedConceptDetail, type SerializedConceptVendor } from './concept-detail';
 
 export default async function ConceptDetailPage({
@@ -66,7 +67,12 @@ export default async function ConceptDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-6 sm:p-8">
-      <ConceptDetail concept={detail} locale={locale} vendorsByCategory={vendorsByCategory} />
+      <ConceptDetail
+        concept={detail}
+        locale={locale}
+        vendorsByCategory={vendorsByCategory}
+        premium={isPremium(wedding!)}
+      />
     </main>
   );
 }

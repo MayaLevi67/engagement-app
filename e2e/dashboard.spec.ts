@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { test, expect, type Page } from '@playwright/test';
+import { prisma } from '../lib/db';
 
 function uniqueEmail() {
   return `e2e-dashboard-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -37,8 +39,8 @@ async function finishOnboarding(page: Page) {
 }
 
 /** Registers a fresh couple and completes onboarding minimally, landing on /dashboard. */
-async function registerAndOnboard(page: Page) {
-  await registerAndLogin(page, uniqueEmail());
+async function registerAndOnboard(page: Page, email: string) {
+  await registerAndLogin(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await fillNamesAndContinue(page);
   await skipRemainingSteps(page);
@@ -46,9 +48,16 @@ async function registerAndOnboard(page: Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
+/** Budget is a premium feature (see e2e/premium.spec.ts) — promote the test couple. */
+async function makePremium(email: string) {
+  const wedding = (await prisma.user.findUnique({ where: { email }, include: { wedding: true } }))?.wedding;
+  await prisma.wedding.update({ where: { id: wedding!.id }, data: { premiumUnlockedAt: new Date() } });
+}
+
 test.describe('Dashboard', () => {
   test('shows the hero + section cards, and the budget card flips from nudge to summary', async ({ page }) => {
-    await registerAndOnboard(page); // lands on /dashboard
+    const email = uniqueEmail();
+    await registerAndOnboard(page, email); // lands on /dashboard
 
     // Onboarding skips the date, so the hero shows the set-date state (Dashboard.noDateTitle);
     // the checklist card renders (its title is always shown regardless of seeded data).
@@ -61,6 +70,7 @@ test.describe('Dashboard', () => {
     await expect(page.getByText(/committed of|שולמו מתוך/i)).toHaveCount(0);
 
     // Set a budget, come back, and the budget card shows a summary instead of the nudge.
+    await makePremium(email);
     await page.goto('/budget');
     await page.getByRole('button', { name: /set budget|הגדרת תקציב/i }).click();
     await page.getByRole('spinbutton').first().fill('120000');
@@ -80,4 +90,8 @@ test.describe('Dashboard', () => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/login/);
   });
+});
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
 });

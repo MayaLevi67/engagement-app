@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { test, expect, type Page } from '@playwright/test';
+import { prisma } from '../lib/db';
 
 function uniqueEmail() {
   return `e2e-checklist-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -37,13 +39,21 @@ async function finishOnboarding(page: Page) {
 }
 
 /** Registers a fresh couple and completes onboarding minimally, landing on /dashboard. */
-async function registerAndOnboard(page: Page) {
-  await registerAndLogin(page, uniqueEmail());
+async function registerAndOnboard(page: Page, email: string) {
+  await registerAndLogin(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await fillNamesAndContinue(page);
   await skipRemainingSteps(page);
   await finishOnboarding(page);
   await expect(page).toHaveURL(/\/dashboard/);
+}
+
+/** The checklist is capped to the first 10 tasks for free couples — promote
+ * the test couple so a newly added CUSTOM task (which sorts after the 44
+ * seeded tasks) isn't hidden by the cap. */
+async function makePremium(email: string) {
+  const wedding = (await prisma.user.findUnique({ where: { email }, include: { wedding: true } }))?.wedding;
+  await prisma.wedding.update({ where: { id: wedding!.id }, data: { premiumUnlockedAt: new Date() } });
 }
 
 /** Parses the he progress string "{done} מתוך {total} הושלמו" into numbers. */
@@ -56,7 +66,7 @@ async function readProgress(page: Page): Promise<{ done: number; total: number }
 
 test.describe('checklist', () => {
   test('a freshly onboarded couple gets a seeded checklist', async ({ page }) => {
-    await registerAndOnboard(page);
+    await registerAndOnboard(page, uniqueEmail());
 
     await page.goto('/checklist');
     await expect(page).toHaveURL(/\/checklist/);
@@ -67,7 +77,7 @@ test.describe('checklist', () => {
   });
 
   test('completing a task increments the progress count', async ({ page }) => {
-    await registerAndOnboard(page);
+    await registerAndOnboard(page, uniqueEmail());
     await page.goto('/checklist');
 
     const before = await readProgress(page);
@@ -95,7 +105,9 @@ test.describe('checklist', () => {
   });
 
   test('adding a custom task, deleting it, and restoring it from trash', async ({ page }) => {
-    await registerAndOnboard(page);
+    const email = uniqueEmail();
+    await registerAndOnboard(page, email);
+    await makePremium(email);
     await page.goto('/checklist');
 
     const customTitle = `E2E custom task ${Date.now()}`;
@@ -127,4 +139,8 @@ test.describe('checklist', () => {
     await page.getByRole('button', { name: 'חזרה לרשימת המשימות' }).click();
     await expect(page.getByText(customTitle)).toBeVisible();
   });
+});
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
 });

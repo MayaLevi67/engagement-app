@@ -78,6 +78,29 @@ Each phase was built via the superpowers brainstorm → spec → plan → subage
 
 ---
 
+## Phase 9 — Premium / Payments ✅ complete (branch `phase-9-premium`)
+
+**Spec:** `specs/2026-07-08-premium-payments-design.md` · **Plan:** `plans/2026-07-08-phase9-premium.md`
+**Branch `phase-9-premium`**, base `9434104` (includes Phase 1–8 merges), HEAD `139f3b3`, 11 commits. 6 tasks + final review.
+**Delivered:** a **one-time Premium unlock per wedding** (`Wedding.premiumUnlockedAt`, shared by partners) via **Stripe hosted Checkout**, granted **solely** by a signature-verified, idempotent webhook. New `Payment` model + `PaymentStatus`; pure `lib/premium/entitlement.ts` (`isPremium`, `capChecklist`); `lib/premium/gate.ts` (`requireWedding`/`requirePremiumWedding`); `lib/stripe/{client,checkout,webhook}.ts`; `lib/actions/premium.ts` (`startCheckout`); `app/api/stripe/webhook/route.ts` (Node runtime, raw-body signature verify). **Enforcement:** all six budget mutations + `pushQuoteToBudget` unconditionally premium; premium-concept (`chooseConcept`/`addElementToChecklist`) + premium-vendor (`toggleShortlist`/`setQuote*`/`linkQuoteToTask`) actions conditionally premium (item `isPremium` freshly loaded); checklist display-capped to 10 for free (`capChecklist`). **UI:** budget paywall, checklist "+N more" teaser, concept/vendor locks, dashboard upgrade card + `?upgraded=1` confirming state, a shared `UpgradeButton` — **no dedicated `/premium` page** (upgrade is an action). Stripe **mocked in all tests** (no live calls).
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **366 unit + 22 e2e** — all green. 9/9 acceptance criteria. (Final whole-branch security review: **ready to merge — yes**, no Critical/Important; two recommended money-path hardenings applied in `139f3b3`.)
+
+**Key decisions / deviations:**
+- **The webhook is the sole authoritative grant.** `premiumUnlockedAt` is written in exactly one place (`handleStripeEvent`) — verified tree-wide, including that the onboarding `update({ data: parsed.data })` can't smuggle it (zod strips unknown keys). The client success redirect (`?upgraded=1`) never grants — it only shows a "confirming…" note until the near-instant webhook resolves.
+- **Idempotent, settled-only grant.** `payment_status === 'paid'` required; `Payment` upsert keyed by the unique `stripeCheckoutSessionId`; grant is a `wedding.updateMany({ where: { premiumUnlockedAt: null } })` conditional set-once — replays/duplicates/concurrent deliveries are no-ops. The upsert + grant are wrapped in a `prisma.$transaction` (atomic single delivery — final-review hardening).
+- **Enforcement gradient** (right-sized): budget + premium concepts/vendors are **server-enforced** (`PREMIUM_REQUIRED`); the checklist 10-cap is **loader-side display only** (own data, no cross-tenant risk).
+- **Hosted Checkout, secret server-only.** `mode: 'payment'` + a configured Stripe **Price** (`STRIPE_PRICE_ID`; amount/currency never hardcoded); `STRIPE_SECRET_KEY` read only in `lib/stripe/*` (no `NEXT_PUBLIC_`, no client import); webhook route public + signature-gated (proxy matcher already excludes `/api/*`).
+- **Upgrade is an action, not a page** — dashboard card + inline gate CTAs → `startCheckout` → Stripe → returns to `/dashboard`; nothing orphaned post-upgrade.
+- **ACCEPTED product decision (user):** the free checklist cap is a hard first-10; a free couple's own added/pushed task can be hidden by the cap until they upgrade (the teaser targets the seeded checklist). The 5 pre-existing e2e specs that exercise now-premium features were fixed by promoting their test couples to premium (the free-gating is covered by `premium.spec.ts`).
+
+**Required env (documented in `.env.example`, not committed):** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`. **CI:** Stripe is mocked in tests — no real keys needed; local webhooks via `stripe listen --forward-to /api/stripe/webhook`.
+
+**Backlog RESOLVED:** ~~Premium paywall enforcement (Phase 9): `Concept.isPremium` renders a badge only; every couple can open/select premium concepts~~ — now enforced (+ premium vendors, budget, checklist cap).
+
+**New follow-ups (logged, non-blocking):** validate `amount`/`currency` against the expected price when refund/dispute webhooks land (non-exploitable today — server-fixed price); add `import 'server-only'` to `lib/stripe/client.ts` (needs the package); an automated **he/en i18n key-parity test** (now assumed by four phases — the standing CI-evolution candidate); cosmetic (`catch→CONFIG` copy, missing-webhook-secret 400-vs-500).
+
+---
+
 ## Phase 8 — Admin Panel ✅ complete (branch `phase-8-admin`)
 
 **Spec:** `specs/2026-07-08-admin-panel-design.md` · **Plan:** `plans/2026-07-08-phase8-admin.md`
@@ -221,5 +244,5 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 
 ## Roadmap position
 
-Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel).
-Next: **Phase 9 — Premium / Payments** (enforce `Concept.isPremium` gating — modeled but unenforced since Phase 4 — and real transactions/Stripe). Then AI Multi-Agent Layer (10, AI-driven vendor matching + budget optimization; the read-only `lib/dashboard/` and `lib/vendors/recommend` seams are natural plug-in points). Future additive steps the codebase is now shaped for: in-app **messaging** to vendors (contact schema ready), and **user/couple management + an audit log** (the admin shell has a clean home for them).
+Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel), Phase 9 (Premium / Payments).
+Next: **Phase 10 — AI Multi-Agent Layer** (AI-driven vendor matching + budget optimization, on top of the `lib/vendors/recommend` + `lib/budget/optimize` + `lib/dashboard` seams; premium can gate AI features via the Phase 9 entitlement). This is the final planned phase. Candidate future adds the codebase is now shaped for: refund/dispute webhooks (revoke premium), in-app **messaging** to vendors (contact schema ready), **user/couple management + audit log** (admin shell has a home), and an automated i18n key-parity CI check.
