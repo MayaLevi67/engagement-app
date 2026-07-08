@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 import { getCurrentWedding } from '@/lib/wedding/queries';
 import { redirect } from '@/lib/i18n/navigation';
 import { getDashboardData } from '@/lib/dashboard/aggregate';
@@ -8,6 +9,7 @@ import { CountdownHero } from './countdown-hero';
 import { OverviewCards } from './overview-cards';
 import { NextUp } from './next-up';
 import { UpgradeButton } from '../upgrade-button';
+import { DevPremiumToggle } from './dev-premium-toggle';
 
 export default async function DashboardPage({
   params,
@@ -29,6 +31,17 @@ export default async function DashboardPage({
   const premium = isPremium(wedding!);
   const justUpgraded = sp.upgraded === '1';
   const t = await getTranslations('Premium');
+
+  // Dev-only testing aid: show a grant/revoke-premium control to admins in
+  // non-production so the premium UX can be exercised without a real payment.
+  const showDevPremium =
+    process.env.NODE_ENV !== 'production' &&
+    (
+      await prisma.user.findUnique({
+        where: { id: session!.user.id },
+        select: { role: true },
+      })
+    )?.role === 'ADMIN';
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6 sm:p-8">
@@ -53,6 +66,8 @@ export default async function DashboardPage({
           <p className="text-sm font-medium text-primary">{t('premiumActive')}</p>
         </section>
       ) : null}
+
+      {showDevPremium ? <DevPremiumToggle premium={premium} /> : null}
 
       <OverviewCards
         locale={locale}
