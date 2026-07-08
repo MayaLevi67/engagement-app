@@ -78,6 +78,30 @@ Each phase was built via the superpowers brainstorm → spec → plan → subage
 
 ---
 
+## Phase 8 — Admin Panel ✅ complete (branch `phase-8-admin`)
+
+**Spec:** `specs/2026-07-08-admin-panel-design.md` · **Plan:** `plans/2026-07-08-phase8-admin.md`
+**Branch `phase-8-admin`**, base `70991b5` (includes Phase 1–7 merges), HEAD `3a46f96`, 7 commits. 5 tasks + final review.
+**Delivered:** a **shared admin shell** over the four standalone CMSes. New `app/[locale]/admin/layout.tsx` performs the **single** server-side admin gate for all `/admin/*` — a fresh **live-DB** `User.role` read via the pure `adminGateDecision` (login/dashboard/allow) — and renders the chrome (header + data-driven section nav, sidebar on `sm+`, RTL-mirrored). The four CMS page loaders (`checklist-templates`, `concepts`, `budget-templates`, `vendors`) **dropped their own gate + outer wrapper** and now render inside the shell. `/admin` became a read-only **overview** (counts of checklist templates / concepts / global vendors + budget-baseline sum with a ≠100 warning) replacing the bare link list. New pure `lib/admin/` (`gate`, `sections` + `activeSectionKey`, `overview` + `budgetBaselineStatus`). Plus the named **cleanups**: `updateConcept` writes content-only (flag-stomp fix), `admin-concepts` gained the `Object.keys` export-parity test, and concept/vendor image add/delete now guard `AdminResult.ok`. New `e2e/admin.spec.ts`.
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **312 unit + 20 e2e** — all green. 9/9 acceptance criteria. (Final whole-branch review: **ready to merge — yes**, no Critical/Important.)
+
+**Key decisions / deviations:**
+- **One live-DB gate in the layout, defense-in-depth preserved.** `adminGateDecision` consults ONLY the live-DB role (never the JWT claim), so a stale-JWT demoted admin is now bounced — removing the four per-page gates **closed** the stale-JWT read-exposure hole rather than opening one. Triple defense remains: edge `proxy.ts` (JWT) → layout (live-DB) → mutation `requireAdmin()` (live-DB, untouched). The per-mutation checks are the real security boundary (a layout+page render concurrently, so the mutation gate — not the layout — is what authoritatively protects writes).
+- **Read-only overview, no new schema.** A small `lib/admin/overview.ts` composer runs cheap `count()`s; the pure `budgetBaselineStatus` (≠100 warning) is unit-tested.
+- **Nav labels reuse the per-CMS `title` keys** (no duplicate label keys); the `Admin` namespace grew only for panel chrome (he/en parity).
+- **No user/couple management, no role-changing, no audit log** — explicitly out of scope; the shell is a clean home for those as future additions.
+- **E2E admin session** via spec-side `prisma` promote (`dotenv/config` + relative import) + `clearCookies()` + fresh relogin — no seeded credential left in the repo (the seeded-admin fallback was avoided as a security footgun).
+
+**Backlog items RESOLVED this phase:**
+- ~~Stale-JWT admin PAGE loaders (`checklist-templates` + `concepts`)~~ → the shared layout's live-DB gate.
+- ~~Phase 4/6 `updateConcept` full-object flag-stomp~~ → content-only write + regression test.
+- ~~`admin-concepts` export-parity test gap~~ → `Object.keys` reflection assertion added.
+- ~~Admin image add/delete don't check `AdminResult.ok`~~ → concept + vendor image editors now surface errors.
+
+**New follow-ups (logged, non-blocking):** no automated he/en i18n **key-parity test** exists (acceptance relies on manual inspection — a good CI-evolution add, ties to the CI-evolution strategy); the layout's live-DB negative path (stale-JWT demoted admin) has only unit coverage, not e2e; a cosmetic "Budget Baseline" (nav) vs "Budget baseline" (card) casing divergence; raw `text-red-600` (semantic-error-token backlog item); the nav test lacks a negative `aria-current` assertion and the vendor image-error path lacks its own test.
+
+---
+
 ## Phase 7 — Dashboard ✅ complete (branch `phase-7-dashboard`)
 
 **Spec:** `specs/2026-07-07-dashboard-design.md` · **Plan:** `plans/2026-07-07-phase7-dashboard.md`
@@ -197,5 +221,5 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 
 ## Roadmap position
 
-Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard).
-Next: **Phase 8 — Admin Panel** (a polished shared admin shell over the per-phase CMSes — templates, concepts, budget baseline, vendors). Then Premium/Payments (9, enforces `isPremium` + real transactions), AI Multi-Agent Layer (10, AI-driven vendor matching + budget optimization; the read-only `lib/dashboard/` seam is a natural plug-in point for a "what should I do next?" summary). A future additive step: in-app **messaging** to vendors (contact schema is ready).
+Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel).
+Next: **Phase 9 — Premium / Payments** (enforce `Concept.isPremium` gating — modeled but unenforced since Phase 4 — and real transactions/Stripe). Then AI Multi-Agent Layer (10, AI-driven vendor matching + budget optimization; the read-only `lib/dashboard/` and `lib/vendors/recommend` seams are natural plug-in points). Future additive steps the codebase is now shaped for: in-app **messaging** to vendors (contact schema ready), and **user/couple management + an audit log** (the admin shell has a clean home for them).
