@@ -4,6 +4,7 @@ vi.mock('@/lib/db', () => ({
   prisma: {
     payment: { findUnique: vi.fn(), upsert: vi.fn() },
     wedding: { updateMany: vi.fn() },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -24,6 +25,7 @@ describe('handleStripeEvent', () => {
     await handleStripeEvent({ type: 'payment_intent.created', data: { object: {} } } as never);
     expect(prisma.payment.upsert).not.toHaveBeenCalled();
     expect(prisma.wedding.updateMany).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('marks the payment PAID and grants premium only if not already', async () => {
@@ -37,18 +39,22 @@ describe('handleStripeEvent', () => {
     expect(prisma.wedding.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'wed1', premiumUnlockedAt: null },
     }));
+    // Both writes are applied atomically in a single transaction.
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
   });
 
   it('does not mark PAID or grant when payment_status is not paid', async () => {
     await handleStripeEvent(completedEvent({ payment_status: 'unpaid' }));
     expect(prisma.payment.upsert).not.toHaveBeenCalled();
     expect(prisma.wedding.updateMany).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('resolves the wedding from an existing payment when metadata is absent', async () => {
     (prisma.payment.findUnique as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue({ weddingId: 'wedX' });
     await handleStripeEvent(completedEvent({ metadata: {} }));
     expect(prisma.wedding.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'wedX', premiumUnlockedAt: null } }));
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
   });
 
   it('is a no-op when no wedding can be resolved', async () => {
@@ -56,5 +62,6 @@ describe('handleStripeEvent', () => {
     await handleStripeEvent(completedEvent({ metadata: {} }));
     expect(prisma.payment.upsert).not.toHaveBeenCalled();
     expect(prisma.wedding.updateMany).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

@@ -33,15 +33,21 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     currency: session.currency ?? null,
   };
 
-  await prisma.payment.upsert({
-    where: { stripeCheckoutSessionId: session.id },
-    create: { weddingId, stripeCheckoutSessionId: session.id, ...paid },
-    update: paid,
-  });
-
-  // Grant once: only flips a wedding that is still free.
-  await prisma.wedding.updateMany({
-    where: { id: weddingId, premiumUnlockedAt: null },
-    data: { premiumUnlockedAt: new Date() },
-  });
+  // Atomic grant: record the PAID payment and flip the wedding to premium in a
+  // single transaction so a crash between the two can't leave a PAID payment on a
+  // still-free wedding. Idempotency is preserved: the upsert keys on the unique
+  // session id and the updateMany is guarded by `premiumUnlockedAt: null`, so
+  // replays/duplicates remain no-ops.
+  await prisma.$transaction([
+    prisma.payment.upsert({
+      where: { stripeCheckoutSessionId: session.id },
+      create: { weddingId, stripeCheckoutSessionId: session.id, ...paid },
+      update: paid,
+    }),
+    // Grant once: only flips a wedding that is still free.
+    prisma.wedding.updateMany({
+      where: { id: weddingId, premiumUnlockedAt: null },
+      data: { premiumUnlockedAt: new Date() },
+    }),
+  ]);
 }

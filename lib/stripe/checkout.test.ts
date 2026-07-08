@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const createSession = vi.fn();
 vi.mock('./client', () => ({ getStripe: () => ({ checkout: { sessions: { create: createSession } } }) }));
-vi.mock('@/lib/db', () => ({ prisma: { payment: { create: vi.fn() } } }));
+vi.mock('@/lib/db', () => ({ prisma: { payment: { create: vi.fn() }, wedding: { findUnique: vi.fn() } } }));
 
 import { prisma } from '@/lib/db';
 import { createCheckoutSessionForWedding } from './checkout';
@@ -15,6 +15,7 @@ beforeEach(() => {
 
 describe('createCheckoutSessionForWedding', () => {
   it('creates a session with weddingId metadata + records a PENDING payment', async () => {
+    (prisma.wedding.findUnique as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue({ premiumUnlockedAt: null });
     createSession.mockResolvedValue({ id: 'cs_123', url: 'https://stripe.test/cs_123' });
     const r = await createCheckoutSessionForWedding('wed1');
     expect(r).toEqual({ url: 'https://stripe.test/cs_123' });
@@ -35,5 +36,12 @@ describe('createCheckoutSessionForWedding', () => {
   it('throws CONFIG when the price/app url is missing', async () => {
     delete process.env.STRIPE_PRICE_ID;
     await expect(createCheckoutSessionForWedding('wed1')).rejects.toThrow();
+  });
+
+  it('short-circuits when the wedding is already premium (no session, no PENDING payment)', async () => {
+    (prisma.wedding.findUnique as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue({ premiumUnlockedAt: new Date() });
+    await expect(createCheckoutSessionForWedding('wed1')).rejects.toThrow(/already premium/i);
+    expect(createSession).not.toHaveBeenCalled();
+    expect(prisma.payment.create).not.toHaveBeenCalled();
   });
 });
