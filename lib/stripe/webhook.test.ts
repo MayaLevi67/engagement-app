@@ -13,7 +13,7 @@ import { handleStripeEvent } from './webhook';
 function completedEvent(over: Record<string, unknown> = {}) {
   return {
     type: 'checkout.session.completed',
-    data: { object: { id: 'cs_1', payment_intent: 'pi_1', amount_total: 4900, currency: 'ils', metadata: { weddingId: 'wed1' }, ...over } },
+    data: { object: { id: 'cs_1', payment_status: 'paid', payment_intent: 'pi_1', amount_total: 4900, currency: 'ils', metadata: { weddingId: 'wed1' }, ...over } },
   } as never;
 }
 
@@ -37,6 +37,12 @@ describe('handleStripeEvent', () => {
     expect(prisma.wedding.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'wed1', premiumUnlockedAt: null },
     }));
+  });
+
+  it('does not mark PAID or grant when payment_status is not paid', async () => {
+    await handleStripeEvent(completedEvent({ payment_status: 'unpaid' }));
+    expect(prisma.payment.upsert).not.toHaveBeenCalled();
+    expect(prisma.wedding.updateMany).not.toHaveBeenCalled();
   });
 
   it('resolves the wedding from an existing payment when metadata is absent', async () => {

@@ -10,6 +10,11 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
   if (event.type !== 'checkout.session.completed') return;
   const session = event.data.object as Stripe.Checkout.Session;
 
+  // Defensive on a money-grant path: `checkout.session.completed` can fire with
+  // `payment_status: 'unpaid'` for delayed/async payment methods. Only grant on
+  // a settled payment.
+  if (session.payment_status !== 'paid') return;
+
   const metaWeddingId = session.metadata?.weddingId ?? null;
   const weddingId =
     metaWeddingId ??
