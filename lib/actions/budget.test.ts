@@ -21,7 +21,7 @@ import {
 beforeEach(() => {
   vi.clearAllMocks();
   (auth as unknown as Mock).mockResolvedValue({ user: { id: 'u1' } });
-  (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1' });
+  (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: new Date() });
 });
 
 describe('setBudgetTotal', () => {
@@ -97,6 +97,27 @@ describe('setTaskEstimatedCost', () => {
   it('rejects ownership mismatch', async () => {
     (prisma.task.findFirst as unknown as Mock).mockResolvedValue(null);
     expect(await setTaskEstimatedCost('tX', 5000)).toEqual({ ok: false, error: 'NOT_FOUND' });
+    expect(prisma.task.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('premium gating (budget is unconditionally premium)', () => {
+  // A free couple must NOT reach any budget mutation, even with a forged request.
+  const gated: Array<[string, () => Promise<unknown>]> = [
+    ['setBudgetTotal', () => setBudgetTotal(150000)],
+    ['setAvgGiftPerGuest', () => setAvgGiftPerGuest(500)],
+    ['setCategoryAllocation', () => setCategoryAllocation('MUSIC', 8000)],
+    ['clearCategoryAllocation', () => clearCategoryAllocation('MUSIC')],
+    ['setTaskAmountPaid', () => setTaskAmountPaid('t1', 10000)],
+    ['setTaskEstimatedCost', () => setTaskEstimatedCost('t1', 5000)],
+  ];
+
+  it.each(gated)('%s returns PREMIUM_REQUIRED for a free wedding', async (_name, run) => {
+    (getCurrentWedding as unknown as Mock).mockResolvedValue({ id: 'wed1', premiumUnlockedAt: null });
+    expect(await run()).toEqual({ ok: false, error: 'PREMIUM_REQUIRED' });
+    expect(prisma.wedding.update).not.toHaveBeenCalled();
+    expect(prisma.budgetAllocation.upsert).not.toHaveBeenCalled();
+    expect(prisma.budgetAllocation.deleteMany).not.toHaveBeenCalled();
     expect(prisma.task.update).not.toHaveBeenCalled();
   });
 });
