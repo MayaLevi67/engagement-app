@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { test, expect, type Page } from '@playwright/test';
+import { prisma } from '../lib/db';
 
 function uniqueEmail() {
   return `e2e-budget-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -37,8 +39,8 @@ async function finishOnboarding(page: Page) {
 }
 
 /** Registers a fresh couple and completes onboarding minimally, landing on /dashboard. */
-async function registerAndOnboard(page: Page) {
-  await registerAndLogin(page, uniqueEmail());
+async function registerAndOnboard(page: Page, email: string) {
+  await registerAndLogin(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await fillNamesAndContinue(page);
   await skipRemainingSteps(page);
@@ -46,9 +48,17 @@ async function registerAndOnboard(page: Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
+/** Budget is a premium feature (see e2e/premium.spec.ts) — promote the test couple. */
+async function makePremium(email: string) {
+  const wedding = (await prisma.user.findUnique({ where: { email }, include: { wedding: true } }))?.wedding;
+  await prisma.wedding.update({ where: { id: wedding!.id }, data: { premiumUnlockedAt: new Date() } });
+}
+
 test.describe('Budget planning', () => {
   test('set a budget, complete a task with a paid amount, see it in the split', async ({ page }) => {
-    await registerAndOnboard(page);
+    const email = uniqueEmail();
+    await registerAndOnboard(page, email);
+    await makePremium(email);
 
     // Open the budget page and set a total (Budget.setTotalCta / Budget.save).
     await page.goto('/budget');
@@ -82,4 +92,8 @@ test.describe('Budget planning', () => {
     await page.goto('/budget');
     await expect(page).toHaveURL(/\/login/);
   });
+});
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
 });

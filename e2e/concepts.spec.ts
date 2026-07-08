@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { test, expect, type Page } from '@playwright/test';
+import { prisma } from '../lib/db';
 
 function uniqueEmail() {
   return `e2e-concepts-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -37,8 +39,8 @@ async function finishOnboarding(page: Page) {
 }
 
 /** Registers a fresh couple and completes onboarding minimally, landing on /dashboard. */
-async function registerAndOnboard(page: Page) {
-  await registerAndLogin(page, uniqueEmail());
+async function registerAndOnboard(page: Page, email: string) {
+  await registerAndLogin(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await fillNamesAndContinue(page);
   await skipRemainingSteps(page);
@@ -46,9 +48,19 @@ async function registerAndOnboard(page: Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
+/** The checklist is capped to the first 10 tasks for free couples — promote
+ * the test couple so a pushed concept idea (a new task, sorting after the
+ * 44 seeded tasks) isn't hidden by the cap when checked on /checklist. */
+async function makePremium(email: string) {
+  const wedding = (await prisma.user.findUnique({ where: { email }, include: { wedding: true } }))?.wedding;
+  await prisma.wedding.update({ where: { id: wedding!.id }, data: { premiumUnlockedAt: new Date() } });
+}
+
 test.describe('concepts', () => {
   test('couple browses concepts, selects one, and pushes an idea to the checklist', async ({ page }) => {
-    await registerAndOnboard(page);
+    const email = uniqueEmail();
+    await registerAndOnboard(page, email);
+    await makePremium(email);
 
     await page.goto('/concepts');
     await expect(page).toHaveURL(/\/concepts/);
@@ -77,4 +89,8 @@ test.describe('concepts', () => {
     await page.goto('/concepts');
     await expect(page).toHaveURL(/\/login/);
   });
+});
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
 });
