@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { getCurrentWedding } from '@/lib/wedding/queries';
 import { redirect } from '@/lib/i18n/navigation';
 import { setRequestLocale } from 'next-intl/server';
+import { LogoutButton } from '../logout-button';
 
 export default async function AppLayout({
   children,
@@ -22,5 +23,12 @@ export default async function AppLayout({
     redirect({ href: '/onboarding', locale });
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen">
+      <header className="flex items-center justify-end border-b border-muted/20 bg-surface px-4 py-2">
+        <LogoutButton />
+      </header>
+      <main>{children}</main>
+    </div>
+  );
 }
