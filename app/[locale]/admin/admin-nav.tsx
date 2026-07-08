@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/navigation';
 import { ADMIN_SECTIONS, activeSectionKey } from '@/lib/admin/sections';
+import { LogoutButton } from '../logout-button';
 
 export function AdminNav() {
   const t = useTranslations();
@@ -25,6 +26,7 @@ export function AdminNav() {
           {t(section.labelKey)}
         </Link>
       ))}
+      <LogoutButton className="rounded-card px-3 py-2 text-start text-sm text-text hover:bg-surface disabled:opacity-60 sm:mt-2" />
     </nav>
   );
 }

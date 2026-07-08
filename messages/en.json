@@ -15,6 +15,7 @@
     "googleButton": "Continue with Google",
     "sendResetButton": "Send reset link",
     "setPasswordButton": "Update password",
+  "logout": "Log out",
     "toRegister": "Don't have an account? Sign up",
     "toLogin": "Already have an account? Sign in",
     "forgotLink": "Forgot your password?",

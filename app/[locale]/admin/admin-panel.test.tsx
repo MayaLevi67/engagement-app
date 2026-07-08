@@ -8,7 +8,10 @@ vi.mock('@/lib/i18n/navigation', () => ({
     <a href={href} {...rest}>{children}</a>
   ),
   usePathname: () => '/admin/concepts',
+  useRouter: () => ({ push: vi.fn() }),
 }));
+
+vi.mock('next-auth/react', () => ({ signOut: vi.fn(async () => undefined) }));
 
 import { AdminNav } from './admin-nav';
 
