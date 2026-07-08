@@ -1,43 +1,59 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/lib/i18n/navigation';
+import { getAdminOverview } from '@/lib/admin/overview';
 
-export default async function AdminPage({
-  params,
+function Card({
+  title,
+  href,
+  openLabel,
+  children,
 }: {
-  params: Promise<{ locale: string }>;
+  title: string;
+  href: string;
+  openLabel: string;
+  children: React.ReactNode;
 }) {
+  return (
+    <section className="flex flex-col gap-2 rounded-card bg-surface p-5 shadow-sm">
+      <h2 className="font-display text-lg text-text">{title}</h2>
+      <div className="flex-1 text-sm text-muted">{children}</div>
+      <Link href={href} className="mt-2 inline-block self-start rounded-card bg-primary px-4 py-2 text-sm font-medium text-background">
+        {openLabel}
+      </Link>
+    </section>
+  );
+}
+
+export default async function AdminPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('Admin');
-  const tConcepts = await getTranslations('AdminConcepts');
   const tTemplates = await getTranslations('AdminTemplates');
-  const tBudget = await getTranslations('AdminBudget');
+  const tConcepts = await getTranslations('AdminConcepts');
   const tVendors = await getTranslations('AdminVendors');
+
+  const overview = await getAdminOverview();
+  const openLabel = t('open');
+
   return (
-    <main className="mx-auto w-full max-w-3xl p-8">
-      <p className="mb-4 text-text">{t('placeholder')}</p>
-      <ul className="flex flex-col gap-2">
-        <li>
-          <Link href="/admin/checklist-templates" className="text-primary underline">
-            {tTemplates('title')}
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/concepts" className="text-primary underline">
-            {tConcepts('title')}
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/budget-templates" className="text-primary underline">
-            {tBudget('title')}
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/vendors" className="text-primary underline">
-            {tVendors('title')}
-          </Link>
-        </li>
-      </ul>
-    </main>
+    <div className="flex flex-col gap-4">
+      <h2 className="font-display text-2xl text-text">{t('overviewTitle')}</h2>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card title={tTemplates('title')} href="/admin/checklist-templates" openLabel={openLabel}>
+          {t('countActive', { active: overview.checklistTemplates.active, total: overview.checklistTemplates.total })}
+        </Card>
+        <Card title={tConcepts('title')} href="/admin/concepts" openLabel={openLabel}>
+          {t('countActive', { active: overview.concepts.active, total: overview.concepts.total })}
+        </Card>
+        <Card title={tVendors('title')} href="/admin/vendors" openLabel={openLabel}>
+          {t('countActive', { active: overview.vendors.active, total: overview.vendors.total })}
+        </Card>
+        <Card title={t('budgetCardTitle')} href="/admin/budget-templates" openLabel={openLabel}>
+          <span className={overview.budget.balanced ? 'text-muted' : 'text-red-600'}>
+            {overview.budget.balanced ? t('budgetBalanced') : t('budgetImbalanced', { sum: overview.budget.sum })}
+          </span>
+        </Card>
+      </div>
+    </div>
   );
 }

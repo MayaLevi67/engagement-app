@@ -58,7 +58,18 @@
     "vendorsBody": "Browse suppliers matched to your area and budget.",
     "vendorsCta": "Browse vendors"
   },
-  "Admin": { "placeholder": "Admin area (admins only)" },
+  "Admin": {
+    "placeholder": "Admin area (admins only)",
+    "panelTitle": "Admin",
+    "backToApp": "Back to app",
+    "overviewNav": "Overview",
+    "overviewTitle": "Overview",
+    "countActive": "{active} active of {total}",
+    "budgetCardTitle": "Budget baseline",
+    "budgetBalanced": "Active percentages total 100%.",
+    "budgetImbalanced": "Active percentages total {sum}% (should be 100%).",
+    "open": "Open"
+  },
   "AdminTemplates": {
     "title": "Checklist templates",
     "new": "New template",
