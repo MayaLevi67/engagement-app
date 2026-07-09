@@ -71,6 +71,12 @@ export function PaymentForm({
       return;
     }
 
+    const parsedCost = cost.trim() === '' ? null : Math.trunc(Number(cost));
+    if (parsedCost != null && !Number.isFinite(parsedCost)) {
+      setError(true);
+      return;
+    }
+
     setError(false);
     setPending(true);
 
@@ -84,10 +90,7 @@ export function PaymentForm({
 
     const result = editing
       ? await editTaskPayment(editing.paymentId, basePayload)
-      : await recordTaskPayment(taskId, {
-          ...basePayload,
-          cost: cost.trim() === '' ? null : Math.trunc(Number(cost)),
-        });
+      : await recordTaskPayment(taskId, { ...basePayload, cost: parsedCost });
 
     setPending(false);
     if (!result.ok) {

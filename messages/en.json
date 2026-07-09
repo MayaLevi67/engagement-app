@@ -431,6 +431,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "paidOfCost": "{paid} of {cost} paid",
+  "paidOnly": "{paid} paid",
     "remaining": "{amount} remaining",
     "overpaid": "Paid more than the cost",
     "columnTask": "Task",

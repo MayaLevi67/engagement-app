@@ -256,7 +256,7 @@ export function TaskRow({
             <span>
               {task.estimatedCost != null
                 ? tPayments('paidOfCost', { paid: fmt(money.paid), cost: fmt(money.cost ?? 0) })
-                : fmt(money.paid)}
+                : tPayments('paidOnly', { paid: fmt(money.paid) })}
             </span>
             {task.estimatedCost != null ? (
               (money.remaining ?? 0) < 0 ? (

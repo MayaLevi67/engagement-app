@@ -431,6 +431,7 @@
     "save": "שמירה",
     "cancel": "ביטול",
     "paidOfCost": "שולמו {paid} מתוך {cost}",
+  "paidOnly": "שולמו {paid}",
     "remaining": "נותרו {amount}",
     "overpaid": "שולם יותר מהעלות",
     "columnTask": "משימה",

@@ -203,7 +203,7 @@ export function VendorDetail({
         <QuotePanel vendorId={vendor.id} quote={quote} tasks={tasks} onChanged={refresh} />
       )}
 
-      {!locked && linkedTask && money ? (
+      {!locked && premium && linkedTask && money ? (
         <section className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-sm">
           <h2 className="font-display text-lg text-text">{tPayments('title')}</h2>
 
@@ -211,7 +211,7 @@ export function VendorDetail({
             <span>
               {linkedTask.estimatedCost != null
                 ? tPayments('paidOfCost', { paid: fmt(money.paid), cost: fmt(money.cost ?? 0) })
-                : fmt(money.paid)}
+                : tPayments('paidOnly', { paid: fmt(money.paid) })}
             </span>
             {linkedTask.estimatedCost != null ? (
               (money.remaining ?? 0) < 0 ? (
@@ -240,26 +240,24 @@ export function VendorDetail({
             </ul>
           ) : null}
 
-          {premium ? (
-            showPaymentForm ? (
-              <PaymentForm
-                taskId={linkedTask.id}
-                partner1Name={partner1Name}
-                partner2Name={partner2Name}
-                initialCost={linkedTask.estimatedCost}
-                onCancel={() => setShowPaymentForm(false)}
-                onSaved={() => setShowPaymentForm(false)}
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowPaymentForm(true)}
-                className="self-start rounded-card bg-primary px-3 py-1.5 text-sm font-medium text-background"
-              >
-                {tPayments('recordCta')}
-              </button>
-            )
-          ) : null}
+          {showPaymentForm ? (
+            <PaymentForm
+              taskId={linkedTask.id}
+              partner1Name={partner1Name}
+              partner2Name={partner2Name}
+              initialCost={linkedTask.estimatedCost}
+              onCancel={() => setShowPaymentForm(false)}
+              onSaved={() => setShowPaymentForm(false)}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowPaymentForm(true)}
+              className="self-start rounded-card bg-primary px-3 py-1.5 text-sm font-medium text-background"
+            >
+              {tPayments('recordCta')}
+            </button>
+          )}
         </section>
       ) : null}
     </div>
