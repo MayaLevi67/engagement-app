@@ -27,6 +27,14 @@
     "invalidToken": "This reset link is invalid or has already been used.",
     "expiredToken": "This reset link has expired. Request a new one."
   },
+  "Nav": {
+    "title": "Navigation",
+    "dashboard": "Home",
+    "checklist": "Checklist",
+    "budget": "Budget",
+    "concepts": "Concepts",
+    "vendors": "Vendors"
+  },
   "Dashboard": {
     "placeholder": "Dashboard (protected)",
     "heroCouple": "{p1} & {p2}",

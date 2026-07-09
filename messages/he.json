@@ -27,6 +27,14 @@
     "invalidToken": "קישור האיפוס אינו תקין או שכבר נעשה בו שימוש.",
     "expiredToken": "קישור האיפוס פג תוקף. יש לבקש קישור חדש."
   },
+  "Nav": {
+    "title": "ניווט",
+    "dashboard": "בית",
+    "checklist": "צ'ק ליסט",
+    "budget": "תקציב",
+    "concepts": "קונספטים",
+    "vendors": "ספקים"
+  },
   "Dashboard": {
     "placeholder": "לוח בקרה (מוגן)",
     "heroCouple": "{p1} ו{p2}",
