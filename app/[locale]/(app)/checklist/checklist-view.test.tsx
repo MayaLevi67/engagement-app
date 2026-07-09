@@ -110,7 +110,7 @@ describe('ChecklistView', () => {
     fireEvent.click(skipButton);
 
     await waitFor(() => {
-      expect(setTaskStatus).toHaveBeenCalledWith('task-1', true, null);
+      expect(setTaskStatus).toHaveBeenCalledWith('task-1', true);
     });
   });
 

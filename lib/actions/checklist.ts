@@ -4,7 +4,6 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { getCurrentWedding } from '@/lib/wedding/queries';
 import { taskEditSchema, customTaskSchema } from '@/lib/checklist/schema';
-import { taskAmountInput } from '@/lib/budget/schema';
 import type { Task } from '@prisma/client';
 
 export type ActionResult =
@@ -35,27 +34,15 @@ async function loadOwnedTask(userId: string, taskId: string): Promise<Task | nul
   return task;
 }
 
-export async function setTaskStatus(
-  taskId: string,
-  done: boolean,
-  amountPaid?: number | null,
-): Promise<ActionResult> {
+export async function setTaskStatus(taskId: string, done: boolean): Promise<ActionResult> {
   const userId = await requireUserId();
   if (!userId) return { ok: false, error: 'UNAUTHENTICATED' };
   const task = await loadOwnedTask(userId, taskId);
   if (!task) return { ok: false, error: 'NOT_FOUND' };
-  // A paid amount is only meaningful when completing; ignore it when re-opening.
-  let paid: number | undefined;
-  if (done && amountPaid !== undefined && amountPaid !== null) {
-    const parsed = taskAmountInput.safeParse({ amount: amountPaid });
-    if (!parsed.success) return { ok: false, error: 'INVALID' };
-    paid = parsed.data.amount ?? undefined;
-  }
+  // Completion only flips status/completedAt now; paid amounts live in the payment ledger.
   await prisma.task.update({
     where: { id: task.id },
-    data: done
-      ? { status: 'DONE', completedAt: new Date(), ...(paid !== undefined ? { amountPaid: paid } : {}) }
-      : { status: 'OPEN', completedAt: null },
+    data: done ? { status: 'DONE', completedAt: new Date() } : { status: 'OPEN', completedAt: null },
   });
   return { ok: true };
 }

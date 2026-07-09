@@ -45,10 +45,10 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
     setIsEditing(true);
   }
 
-  async function completeWith(amountPaid: number | null) {
+  async function completeWith() {
     setError(false);
     setPending(true);
-    const result = await setTaskStatus(task.id, true, amountPaid);
+    const result = await setTaskStatus(task.id, true);
     setPending(false);
     setAskingPaid(false);
     setPaidInput('');
@@ -242,7 +242,7 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
           <button
             type="button"
             disabled={pending}
-            onClick={() => completeWith(paidInput === '' ? null : Math.trunc(Number(paidInput)))}
+            onClick={() => completeWith()}
             className="rounded-card bg-primary px-3 py-1 text-sm text-background disabled:opacity-60"
           >
             {t('paidSave')}
@@ -250,7 +250,7 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
           <button
             type="button"
             disabled={pending}
-            onClick={() => completeWith(null)}
+            onClick={() => completeWith()}
             className="rounded-card border border-muted/30 px-3 py-1 text-sm text-text"
           >
             {t('paidSkip')}

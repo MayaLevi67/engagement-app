@@ -6,6 +6,7 @@ vi.mock('@/lib/auth', () => ({ auth: vi.fn() }));
 vi.mock('@/lib/wedding/queries', () => ({ getCurrentWedding: vi.fn() }));
 vi.mock('@/lib/actions/budget', () => ({ setTaskEstimatedCost: vi.fn() }));
 vi.mock('@/lib/actions/checklist', () => ({ setTaskStatus: vi.fn() }));
+vi.mock('@/lib/actions/payments', () => ({ recordTaskPayment: vi.fn() }));
 vi.mock('@/lib/db', () => ({
   prisma: {
     vendor: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
@@ -19,6 +20,7 @@ import { prisma } from '@/lib/db';
 import { getCurrentWedding } from '@/lib/wedding/queries';
 import { setTaskEstimatedCost } from '@/lib/actions/budget';
 import { setTaskStatus } from '@/lib/actions/checklist';
+import { recordTaskPayment } from '@/lib/actions/payments';
 import {
   toggleShortlist, setQuoteStatus, setQuoteAmount, setQuoteNotes, linkQuoteToTask, pushQuoteToBudget,
   addPrivateVendor, editPrivateVendor, deletePrivateVendor,
@@ -80,11 +82,21 @@ describe('pushQuoteToBudget', () => {
     expect(setTaskEstimatedCost).toHaveBeenCalledWith('t1', 8000);
     expect(setTaskStatus).not.toHaveBeenCalled();
   });
-  it('marks the task done with the amount when paid', async () => {
+  it('completes the task and records a BOTH payment when paid', async () => {
     (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1', amount: 8000, taskId: 't1' });
     (setTaskStatus as Mock).mockResolvedValue({ ok: true });
+    (recordTaskPayment as Mock).mockResolvedValue({ ok: true });
     expect(await pushQuoteToBudget('v1', { paid: true })).toEqual({ ok: true });
-    expect(setTaskStatus).toHaveBeenCalledWith('t1', true, 8000);
+    expect(setTaskStatus).toHaveBeenCalledWith('t1', true);
+    expect(recordTaskPayment).toHaveBeenCalledWith('t1', { amount: 8000, payer: 'BOTH', cost: 8000 });
+    expect(setTaskEstimatedCost).not.toHaveBeenCalled();
+  });
+
+  it('maps a premium failure from the payment ledger when paid', async () => {
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1', amount: 8000, taskId: 't1' });
+    (setTaskStatus as Mock).mockResolvedValue({ ok: true });
+    (recordTaskPayment as Mock).mockResolvedValue({ ok: false, error: 'PREMIUM_REQUIRED' });
+    expect(await pushQuoteToBudget('v1', { paid: true })).toEqual({ ok: false, error: 'PREMIUM_REQUIRED' });
   });
   it('rejects when there is no linked task or no amount', async () => {
     (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1', amount: null, taskId: 't1' });
