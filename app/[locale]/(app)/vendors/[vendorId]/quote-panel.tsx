@@ -16,6 +16,7 @@ export interface SerializedQuote {
 export interface QuoteTask {
   id: string;
   title: string;
+  hasPayments: boolean;
 }
 
 interface QuotePanelProps {
@@ -91,6 +92,10 @@ export function QuotePanel({ vendorId, quote, tasks, onChanged }: QuotePanelProp
   }
 
   const canPushToBudget = amount.trim() !== '' && taskId !== '';
+  // A "paid" push records a new TaskPayment every click — once the linked task
+  // already has a payment on its ledger, re-offering this button would double-charge
+  // paid on re-click, so it becomes a one-time action (edit/delete on the ledger after).
+  const linkedTaskHasPayments = tasks.find((task) => task.id === taskId)?.hasPayments ?? false;
 
   return (
     <section className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-sm">
@@ -168,16 +173,19 @@ export function QuotePanel({ vendorId, quote, tasks, onChanged }: QuotePanelProp
         >
           {t('addToBudgetPlanned')}
         </button>
-        <button
-          type="button"
-          disabled={pending || !canPushToBudget}
-          onClick={() => handlePushToBudget(true)}
-          className="rounded-card bg-primary px-3 py-1.5 text-sm font-medium text-background disabled:opacity-60"
-        >
-          {t('addToBudgetPaid')}
-        </button>
+        {linkedTaskHasPayments ? null : (
+          <button
+            type="button"
+            disabled={pending || !canPushToBudget}
+            onClick={() => handlePushToBudget(true)}
+            className="rounded-card bg-primary px-3 py-1.5 text-sm font-medium text-background disabled:opacity-60"
+          >
+            {t('addToBudgetPaid')}
+          </button>
+        )}
       </div>
 
+      {linkedTaskHasPayments ? <p className="text-xs text-muted">{t('addToBudgetPaidDone')}</p> : null}
       {budgetMessage ? <p className="text-xs text-primary">{t('addedToBudget')}</p> : null}
       {error ? <p className="text-sm text-red-600">{t('error')}</p> : null}
     </section>

@@ -26,6 +26,12 @@ vi.mock('@/lib/actions/checklist', () => ({
   setTaskReminder: vi.fn(async () => ({ ok: true })),
 }));
 
+vi.mock('@/lib/actions/payments', () => ({
+  recordTaskPayment: vi.fn(async () => ({ ok: true })),
+  editTaskPayment: vi.fn(async () => ({ ok: true })),
+  deleteTaskPayment: vi.fn(async () => ({ ok: true })),
+}));
+
 import { UpgradeButton } from './upgrade-button';
 import { Paywall } from './budget/paywall';
 import { ChecklistView } from './checklist/checklist-view';
@@ -55,6 +61,7 @@ const task: SerializedTask = {
   estimatedCost: null,
   amountPaid: null,
   deletedAt: null,
+  payments: [],
 };
 
 describe('UpgradeButton', () => {

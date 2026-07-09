@@ -28,6 +28,12 @@ vi.mock('@/lib/actions/premium', () => ({
   startCheckout: vi.fn(async () => ({ ok: true, url: 'https://checkout.stripe.com/session' })),
 }));
 
+vi.mock('@/lib/actions/payments', () => ({
+  recordTaskPayment: vi.fn(async () => ({ ok: true })),
+  editTaskPayment: vi.fn(async () => ({ ok: true })),
+  deleteTaskPayment: vi.fn(async () => ({ ok: true })),
+}));
+
 import { ChecklistView } from './checklist-view';
 
 const tasks: SerializedTask[] = [
@@ -48,6 +54,7 @@ const tasks: SerializedTask[] = [
     estimatedCost: null,
     amountPaid: null,
     deletedAt: null,
+    payments: [],
   },
   {
     id: 'task-2',
@@ -66,6 +73,7 @@ const tasks: SerializedTask[] = [
     estimatedCost: null,
     amountPaid: null,
     deletedAt: null,
+    payments: [],
   },
 ];
 
@@ -100,14 +108,11 @@ describe('ChecklistView', () => {
     ).toBeInTheDocument();
   });
 
-  it('opens the paid-amount prompt and calls setTaskStatus when skipped', async () => {
+  it('checking an open task directly calls setTaskStatus(id, true) — no popup', async () => {
     renderView();
 
     const checkbox = screen.getByRole('checkbox', { name: 'Book venue' });
     fireEvent.click(checkbox);
-
-    const skipButton = screen.getByRole('button', { name: en.Checklist.paidSkip });
-    fireEvent.click(skipButton);
 
     await waitFor(() => {
       expect(setTaskStatus).toHaveBeenCalledWith('task-1', true);

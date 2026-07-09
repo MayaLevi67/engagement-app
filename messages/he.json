@@ -33,7 +33,8 @@
     "checklist": "צ'ק ליסט",
     "budget": "תקציב",
     "concepts": "קונספטים",
-    "vendors": "ספקים"
+    "vendors": "ספקים",
+    "payments": "תשלומים"
   },
   "Dashboard": {
     "placeholder": "לוח בקרה (מוגן)",
@@ -210,11 +211,7 @@
     "reminderOff": "תזכורת כבויה",
     "edit": "עריכה",
     "delete": "מחיקה",
-    "error": "משהו השתבש. נסו שוב",
-    "paidPrompt": "כמה שילמתם? (אופציונלי)",
-    "paidSkip": "דילוג",
-    "paidSave": "שמירה",
-    "paidLabel": "שולם {amount}"
+    "error": "משהו השתבש. נסו שוב"
   },
   "TaskCategory": {
     "VENUE": "אולם",
@@ -365,6 +362,7 @@
     "noTask": "לא מקושרת משימה",
     "addToBudgetPlanned": "הוספה לתקציב (מתוכנן)",
     "addToBudgetPaid": "הוספה לתקציב (שולם)",
+    "addToBudgetPaidDone": "כבר סומן כשולם — ניהלו את התשלומים למטה.",
     "addedToBudget": "נוסף לתקציב שלכם",
     "save": "שמירה",
     "cancel": "ביטול",
@@ -411,5 +409,44 @@
     "confirming": "מאשרים את התשלום…",
     "premiumActive": "פרימיום ✓",
     "checkoutError": "משהו השתבש בפתיחת התשלום. נסו שוב."
+  },
+  "Payer": {
+    "partner1": "בן/בת הזוג הראשון/ה",
+    "partner2": "בן/בת הזוג השני/ה",
+    "both": "משותף",
+    "partner1Family": "המשפחה של בן/בת הזוג הראשון/ה",
+    "partner2Family": "המשפחה של בן/בת הזוג השני/ה",
+    "family": "המשפחה של {name}",
+    "other": "אחר"
+  },
+  "Payments": {
+    "title": "תשלומים",
+    "recordCta": "רישום תשלום",
+    "cost": "עלות",
+    "amount": "סכום",
+    "payer": "שולם על ידי",
+    "payerLabelOther": "מי שילם?",
+    "date": "תאריך התשלום",
+    "note": "הערה",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "paidOfCost": "שולמו {paid} מתוך {cost}",
+    "remaining": "נותרו {amount}",
+    "overpaid": "שולם יותר מהעלות",
+    "columnTask": "משימה",
+    "columnVendor": "ספק",
+    "columnCost": "עלות",
+    "columnPaid": "שולם",
+    "columnRemaining": "נותר",
+    "byPayerTitle": "לפי מי ששילם",
+    "totalsCost": "עלות כוללת",
+    "totalsPaid": "שולם בסך הכול",
+    "totalsRemaining": "נותר בסך הכול",
+    "paywallTitle": "מעקב תשלומים הוא פיצ'ר פרימיום",
+    "paywallBody": "שדרגו כדי לתעד מקדמות ותשלומים, ולראות עלות, תשלום ויתרה לכל משימה וספק.",
+    "empty": "אין עדיין תשלומים רשומים",
+    "editPayment": "עריכה",
+    "deletePayment": "מחיקה",
+    "error": "משהו השתבש. נסו שוב"
   }
 }
