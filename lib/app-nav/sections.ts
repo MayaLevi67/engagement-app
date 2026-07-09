@@ -8,6 +8,7 @@ export const APP_NAV_SECTIONS: AppNavSection[] = [
   { key: 'dashboard', href: '/dashboard', labelKey: 'Nav.dashboard' },
   { key: 'checklist', href: '/checklist', labelKey: 'Nav.checklist' },
   { key: 'budget', href: '/budget', labelKey: 'Nav.budget' },
+  { key: 'payments', href: '/payments', labelKey: 'Nav.payments' },
   { key: 'concepts', href: '/concepts', labelKey: 'Nav.concepts' },
   { key: 'vendors', href: '/vendors', labelKey: 'Nav.vendors' },
 ];
