@@ -78,6 +78,25 @@ Each phase was built via the superpowers brainstorm → spec → plan → subage
 
 ---
 
+## Feature — Payments & Deposits ✅ complete (branch `feature-payments-deposits`)
+
+**Spec:** `specs/2026-07-09-payments-deposits-design.md` · **Plan:** `plans/2026-07-09-payments-deposits.md`
+**Branch `feature-payments-deposits`**, base `c802d0f`, HEAD `4e75ddc`, 9 commits. 7 tasks + final review + polish. Post-Phase-9 feature (builds on the premium entitlement + the side nav).
+**Delivered:** per-task **money tracking** — a **`TaskPayment` ledger** (amount + `payer` + optional date/note) with a neutral, name-based **`PayerRole`** enum. Each task now carries a total cost (`estimatedCost`) and a ledger of payments; the app derives **paid so far** and **remaining** (cost − paid), plus a **by-payer roll-up**. New premium-gated actions `recordTaskPayment`/`editTaskPayment`/`deleteTaskPayment` (`lib/actions/payments.ts`); pure `lib/payments/{rollup,payer}.ts` (`taskMoney`, `sumByPayer`, `rollup`, `payerDisplayName`, `payerOptions`). UI: a shared `PaymentForm` on the checklist task row + vendor detail, and a new **`/payments` page** (side-nav item) showing per-vendor/task cost/paid/remaining + totals + by-payer summary. Free couples get a paywall + no record affordance.
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **401 unit + 24 e2e** — all green. 9/9 acceptance criteria. Final whole-branch review (opus): **ready to merge, no Critical/Important**.
+
+**Key decisions:**
+- **Cached `amountPaid` (single writer).** `Task.amountPaid` stays as a cached total kept `== sum(payments)` — recomputed inside every payment action's `$transaction` (`recomputeTaskPaid`). Verified tree-wide that **nothing else writes it** (the Phase-5 budget rollup + remaining calc are untouched → lowest risk). Migration **backfilled** existing `amountPaid` into one `TaskPayment` (payer `OTHER`, note `imported`) so by-payer totals are consistent from day one.
+- **Neutral name-based payers** (`PARTNER_1/2`, `BOTH`, `PARTNER_1/2_FAMILY`, `OTHER`+label) resolved to the couple's real names — consistent with the app's partner-1/partner-2 model, not bride/groom.
+- **Premium-gated** like Budget — page paywall + `PREMIUM_REQUIRED` on every mutation; the payment **display** is gated on the couple's premium on both the checklist row and vendor detail. Completing a task stays **free** (`setTaskStatus` dropped its `amountPaid` param).
+- **Integration:** the Budget page's per-task paid is **read-only** (`setTaskAmountPaid` removed); `pushQuoteToBudget` "mark paid" **marks done + sets cost + records a `BOTH` payment** (UI-guarded against a double-charge re-click via `hasPayments`; server appends by design). Final-review polish: vendor-push rejects amount ≤ 0 before marking done; `/payments` shows a friendly "overpaid" hint; edit/delete are tenant-scoped at the write (`updateMany/deleteMany {id, weddingId}`).
+
+**Scope:** **due dates / installment schedules / reminders were explicitly deferred** to a future phase (hooks: `paidOn` + the isolated ledger make it additive).
+
+**Follow-ups (logged, non-blocking):** **e2e needs `--workers=1` or a prod build** — the default 12-worker parallel run overwhelms the shared Turbopack dev server (all specs fail identically; not a product bug) → fold into the eventual CI e2e step; the automated **he/en i18n key-parity test** is still the standing CI-evolution candidate (parity was verified programmatically each task, not by an in-repo test).
+
+---
+
 ## Phase 9 — Premium / Payments ✅ complete (branch `phase-9-premium`)
 
 **Spec:** `specs/2026-07-08-premium-payments-design.md` · **Plan:** `plans/2026-07-08-phase9-premium.md`
@@ -244,5 +263,5 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 
 ## Roadmap position
 
-Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel), Phase 9 (Premium / Payments).
+Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel), Phase 9 (Premium / Payments). Post-phase feature work: Logout, dev premium toggle, couple-app side nav, **Payments & Deposits** (per-task cost/paid/remaining + by-payer roll-up).
 Next: **Phase 10 — AI Multi-Agent Layer** (AI-driven vendor matching + budget optimization, on top of the `lib/vendors/recommend` + `lib/budget/optimize` + `lib/dashboard` seams; premium can gate AI features via the Phase 9 entitlement). This is the final planned phase. Candidate future adds the codebase is now shaped for: refund/dispute webhooks (revoke premium), in-app **messaging** to vendors (contact schema ready), **user/couple management + audit log** (admin shell has a home), and an automated i18n key-parity CI check.
