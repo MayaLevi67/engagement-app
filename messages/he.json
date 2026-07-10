@@ -449,5 +449,9 @@
     "editPayment": "עריכה",
     "deletePayment": "מחיקה",
     "error": "משהו השתבש. נסו שוב"
+  },
+  "Editorial": {
+    "photoPlaceholder": "תמונה",
+    "photoAlt": "תמונת חתונה"
   }
 }

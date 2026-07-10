@@ -449,5 +449,9 @@
     "editPayment": "Edit",
     "deletePayment": "Delete",
     "error": "Something went wrong. Please try again"
+  },
+  "Editorial": {
+    "photoPlaceholder": "Photo",
+    "photoAlt": "Wedding photo"
   }
 }
