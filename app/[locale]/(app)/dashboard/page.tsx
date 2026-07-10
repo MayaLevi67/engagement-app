@@ -10,6 +10,9 @@ import { OverviewCards } from './overview-cards';
 import { NextUp } from './next-up';
 import { UpgradeButton } from '../upgrade-button';
 import { DevPremiumToggle } from './dev-premium-toggle';
+import { SectionHeader } from '@/components/editorial/section-header';
+import { ImageRail } from '@/components/editorial/image-rail';
+import { Card } from '@/components/editorial/card';
 
 export default async function DashboardPage({
   params,
@@ -31,6 +34,8 @@ export default async function DashboardPage({
   const premium = isPremium(wedding!);
   const justUpgraded = sp.upgraded === '1';
   const t = await getTranslations('Premium');
+  const tDash = await getTranslations('Dashboard');
+  const tEditorial = await getTranslations('Editorial');
 
   // Dev-only testing aid: show a grant/revoke-premium control to admins in
   // non-production so the premium UX can be exercised without a real payment.
@@ -55,19 +60,26 @@ export default async function DashboardPage({
       />
 
       {!premium ? (
-        <section className="flex flex-col items-start gap-2 rounded-card bg-surface p-5 shadow-sm">
+        <Card accent="wine" className="flex flex-col items-start gap-2">
           <h2 className="font-display text-lg text-text">{t('upgradeCardTitle')}</h2>
           <p className="text-sm text-muted">{t('upgradeCardBody')}</p>
           {justUpgraded ? <p className="text-sm text-primary">{t('confirming')}</p> : null}
           <UpgradeButton />
-        </section>
+        </Card>
       ) : justUpgraded ? (
-        <section className="rounded-card bg-surface p-5 shadow-sm">
+        <Card accent="none">
           <p className="text-sm font-medium text-primary">{t('premiumActive')}</p>
-        </section>
+        </Card>
       ) : null}
 
       {showDevPremium ? <DevPremiumToggle premium={premium} /> : null}
+
+      <div>
+        <SectionHeader title={tDash('nextUpTitle')} />
+        <ImageRail alt={tEditorial('photoAlt')} placeholderLabel={tEditorial('photoPlaceholder')}>
+          <NextUp locale={locale} tasks={data.nextUp} />
+        </ImageRail>
+      </div>
 
       <OverviewCards
         locale={locale}
@@ -76,7 +88,6 @@ export default async function DashboardPage({
         vendors={data.vendors}
         concept={data.concept}
       />
-      <NextUp locale={locale} tasks={data.nextUp} />
     </main>
   );
 }

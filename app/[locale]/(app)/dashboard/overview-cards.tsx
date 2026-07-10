@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/lib/i18n/navigation';
 import { resolveConceptTitle } from '@/lib/concepts/title';
+import { Card } from '@/components/editorial/card';
 import type { BudgetSummary, ChecklistSummary, ConceptSummary, VendorCounts } from '@/lib/dashboard/aggregate';
 
 interface OverviewCardsProps {
@@ -11,15 +12,29 @@ interface OverviewCardsProps {
   concept: ConceptSummary | null;
 }
 
-function Card({ title, href, cta, children }: { title: string; href: string; cta: string; children: React.ReactNode }) {
+function OverviewCard({
+  title,
+  href,
+  cta,
+  accent = 'sage',
+  className = '',
+  children,
+}: {
+  title: string;
+  href: string;
+  cta: string;
+  accent?: 'sage' | 'wine' | 'none';
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="flex flex-col gap-2 rounded-card bg-surface p-5 shadow-sm">
+    <Card accent={accent} className={`flex h-full flex-col gap-2 ${className}`.trim()}>
       <h2 className="font-display text-lg text-text">{title}</h2>
       <div className="flex-1 text-sm text-muted">{children}</div>
       <Link href={href} className="mt-2 inline-block self-start rounded-card bg-primary px-4 py-2 text-sm font-medium text-background">
         {cta}
       </Link>
-    </section>
+    </Card>
   );
 }
 
@@ -28,9 +43,9 @@ export function OverviewCards({ locale, checklist, budget, vendors, concept }: O
   const fmt = (n: number) => `₪${n.toLocaleString(locale)}`;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {/* Checklist */}
-      <Card title={t('checklistTitle')} href="/checklist" cta={t('checklistCta')}>
+    <div className="grid gap-4 sm:grid-cols-3">
+      {/* Checklist — money-adjacent progress, wine accent; wide (asymmetric grid) */}
+      <OverviewCard title={t('checklistTitle')} href="/checklist" cta={t('checklistCta')} accent="wine" className="sm:col-span-2">
         {checklist.total > 0 ? (
           <div className="flex flex-col gap-2">
             <span>{t('checklistSummary', { done: checklist.done, total: checklist.total })}</span>
@@ -42,10 +57,10 @@ export function OverviewCards({ locale, checklist, budget, vendors, concept }: O
         ) : (
           <span>{t('checklistEmpty')}</span>
         )}
-      </Card>
+      </OverviewCard>
 
-      {/* Budget — dual-mode (summary vs nudge body; same CTA either way) */}
-      <Card title={t('budgetTitle')} href="/budget" cta={t('budgetCta')}>
+      {/* Budget — dual-mode (summary vs nudge body; same CTA either way); wine accent for money */}
+      <OverviewCard title={t('budgetTitle')} href="/budget" cta={t('budgetCta')} accent="wine">
         {budget ? (
           <div className="flex flex-col gap-1">
             <span>{t('budgetSummary', { committed: fmt(budget.committed), total: fmt(budget.total) })}</span>
@@ -54,19 +69,19 @@ export function OverviewCards({ locale, checklist, budget, vendors, concept }: O
         ) : (
           <span>{t('budgetBody')}</span>
         )}
-      </Card>
+      </OverviewCard>
 
       {/* Vendors — dual-mode */}
-      <Card title={t('vendorsTitle')} href="/vendors" cta={t('vendorsCta')}>
+      <OverviewCard title={t('vendorsTitle')} href="/vendors" cta={t('vendorsCta')} accent="sage">
         {vendors.shortlisted > 0 ? (
           <span>{t('vendorsSummary', { shortlisted: vendors.shortlisted, booked: vendors.booked })}</span>
         ) : (
           <span>{t('vendorsBody')}</span>
         )}
-      </Card>
+      </OverviewCard>
 
-      {/* Concept — dual-mode */}
-      <Card title={t('chooseConceptTitle')} href="/concepts" cta={t('chooseConceptCta')}>
+      {/* Concept — dual-mode; wide (asymmetric grid) */}
+      <OverviewCard title={t('chooseConceptTitle')} href="/concepts" cta={t('chooseConceptCta')} accent="sage" className="sm:col-span-2">
         {concept ? (
           <div className="flex flex-col gap-2">
             <span>{t('conceptChosen', { name: resolveConceptTitle(concept, locale) })}</span>
@@ -79,7 +94,7 @@ export function OverviewCards({ locale, checklist, budget, vendors, concept }: O
         ) : (
           <span>{t('chooseConceptBody')}</span>
         )}
-      </Card>
+      </OverviewCard>
     </div>
   );
 }

@@ -19,10 +19,12 @@ describe('CountdownHero', () => {
     wrap(<CountdownHero locale="en" partner1Name="Maya" partner2Name="Alex" countdownDays={10} dateIsApproximate={false} weddingDate="2026-07-17T00:00:00.000Z" />);
     expect(screen.getByText(/10 days to go/i)).toBeTruthy();
     expect(screen.getByText(/Maya & Alex/i)).toBeTruthy();
+    expect(screen.getByText('M & A')).toBeTruthy(); // editorial Hero monogram
   });
   it('shows the set-date state when there is no date', () => {
     wrap(<CountdownHero locale="en" partner1Name="Maya" partner2Name={null} countdownDays={null} dateIsApproximate={false} weddingDate={null} />);
     expect(screen.getByText(/set your wedding date/i)).toBeTruthy();
+    expect(screen.getByText('M')).toBeTruthy(); // editorial Hero monogram (solo)
   });
   it('shows a soft around-<month year> label for an approximate date, not a day count', () => {
     wrap(<CountdownHero locale="en" partner1Name="Maya" partner2Name="Alex" countdownDays={40} dateIsApproximate={true} weddingDate="2026-07-17T00:00:00.000Z" />);

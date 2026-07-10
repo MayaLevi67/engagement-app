@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/lib/i18n/navigation';
+import { Hero } from '@/components/editorial/hero';
 
 interface CountdownHeroProps {
   locale: string;
@@ -21,27 +22,30 @@ export function CountdownHero(props: CountdownHeroProps) {
         ? t('heroCoupleSolo', { p1: partner1Name })
         : null;
 
+  const countdownLine =
+    countdownDays == null
+      ? null
+      : dateIsApproximate && weddingDate
+        ? t('dateApproximateAround', {
+            date: new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(weddingDate)),
+          })
+        : countdownDays < 0
+          ? t('datePassed')
+          : t('daysToGo', { days: countdownDays });
+
   return (
-    <section className="rounded-card bg-surface p-8 text-center shadow-sm">
-      {couple ? <h1 className="font-display text-3xl text-text">{couple}</h1> : null}
+    <>
+      <Hero coupleName={couple} partner1Name={partner1Name} partner2Name={partner2Name}>
+        {countdownLine}
+      </Hero>
       {countdownDays == null ? (
-        <div className="mt-3">
+        <div className="text-center">
           <p className="text-sm text-muted">{t('noDateTitle')}</p>
           <Link href="/settings/wedding" className="mt-2 inline-block rounded-card bg-primary px-4 py-2 text-sm font-medium text-background">
             {t('noDateCta')}
           </Link>
         </div>
-      ) : dateIsApproximate && weddingDate ? (
-        <p className="mt-3 font-display text-2xl text-primary">
-          {t('dateApproximateAround', {
-            date: new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(weddingDate)),
-          })}
-        </p>
-      ) : countdownDays < 0 ? (
-        <p className="mt-3 font-body text-lg text-text">{t('datePassed')}</p>
-      ) : (
-        <p className="mt-3 font-display text-2xl text-primary">{t('daysToGo', { days: countdownDays })}</p>
-      )}
-    </section>
+      ) : null}
+    </>
   );
 }
