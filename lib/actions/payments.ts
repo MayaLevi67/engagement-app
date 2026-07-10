@@ -70,8 +70,8 @@ export async function editTaskPayment(paymentId: string, input: unknown): Promis
   if (!existing) return { ok: false, error: 'NOT_FOUND' };
 
   await prisma.$transaction(async (tx) => {
-    await tx.taskPayment.update({
-      where: { id: paymentId },
+    await tx.taskPayment.updateMany({
+      where: { id: paymentId, weddingId: g.wedding.id },
       data: {
         amount: parsed.data.amount,
         payer: parsed.data.payer as PayerRole,
@@ -96,7 +96,7 @@ export async function deleteTaskPayment(paymentId: string): Promise<PaymentActio
   if (!existing) return { ok: false, error: 'NOT_FOUND' };
 
   await prisma.$transaction(async (tx) => {
-    await tx.taskPayment.delete({ where: { id: paymentId } });
+    await tx.taskPayment.deleteMany({ where: { id: paymentId, weddingId: g.wedding.id } });
     await recomputeTaskPaid(tx, existing.taskId);
   });
   return { ok: true };

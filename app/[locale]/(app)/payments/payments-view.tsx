@@ -88,7 +88,7 @@ function PaymentTaskRow({
         <span className="text-xs text-muted sm:text-end">{row.cost != null ? fmt(row.cost) : ''}</span>
         <span className="text-xs text-muted sm:text-end">{fmt(row.paid)}</span>
         <span className="text-xs text-muted sm:text-end">
-          {row.cost != null ? fmt(row.remaining ?? 0) : ''}
+          {row.cost != null ? ((row.remaining ?? 0) < 0 ? t('overpaid') : fmt(row.remaining ?? 0)) : ''}
         </span>
       </button>
 

@@ -19,8 +19,8 @@ const tx = {
   task: { update: vi.fn() },
   taskPayment: {
     create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
     aggregate: vi.fn(),
   },
 };
@@ -136,8 +136,11 @@ describe('editTaskPayment', () => {
 
     expect(await editTaskPayment('p1', { amount: 5000, payer: 'PARTNER_2' })).toEqual({ ok: true });
 
-    expect(tx.taskPayment.update).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: 'p1' }, data: expect.objectContaining({ amount: 5000, payer: 'PARTNER_2' }) }),
+    expect(tx.taskPayment.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'p1', weddingId: 'w1' },
+        data: expect.objectContaining({ amount: 5000, payer: 'PARTNER_2' }),
+      }),
     );
     expect(tx.task.update).toHaveBeenCalledWith({ where: { id: 't1' }, data: { amountPaid: 5000 } });
   });
@@ -174,7 +177,7 @@ describe('deleteTaskPayment', () => {
 
     expect(await deleteTaskPayment('p1')).toEqual({ ok: true });
 
-    expect(tx.taskPayment.delete).toHaveBeenCalledWith({ where: { id: 'p1' } });
+    expect(tx.taskPayment.deleteMany).toHaveBeenCalledWith({ where: { id: 'p1', weddingId: 'w1' } });
     expect(tx.task.update).toHaveBeenCalledWith({ where: { id: 't1' }, data: { amountPaid: 0 } });
   });
 

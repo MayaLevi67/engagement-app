@@ -104,6 +104,14 @@ describe('pushQuoteToBudget', () => {
     (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1', amount: 8000, taskId: null });
     expect(await pushQuoteToBudget('v1', { paid: false })).toEqual({ ok: false, error: 'INVALID' });
   });
+  it('rejects a non-positive amount on the paid push without marking the task done', async () => {
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1', amount: 0, taskId: 't1' });
+    expect(await pushQuoteToBudget('v1', { paid: true })).toEqual({ ok: false, error: 'INVALID' });
+    (prisma.vendorQuote.findUnique as Mock).mockResolvedValue({ id: 'q1', amount: -5, taskId: 't1' });
+    expect(await pushQuoteToBudget('v1', { paid: true })).toEqual({ ok: false, error: 'INVALID' });
+    expect(setTaskStatus).not.toHaveBeenCalled();
+    expect(recordTaskPayment).not.toHaveBeenCalled();
+  });
 });
 
 describe('addPrivateVendor', () => {

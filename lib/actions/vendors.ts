@@ -130,7 +130,12 @@ export async function pushQuoteToBudget(vendorId: string, opts: { paid: boolean 
     select: { amount: true, taskId: true },
   });
   if (!quote) return { ok: false, error: 'NOT_FOUND' };
-  if (quote.taskId == null || quote.amount == null) return { ok: false, error: 'INVALID' };
+  // Paid must have a positive amount (recordTaskPayment's ledger entry requires it) — otherwise
+  // the task would be marked DONE with no payment recorded. The planned (non-paid) path keeps
+  // accepting 0, matching setTaskEstimatedCost's own validation (taskAmountInput allows 0).
+  if (quote.taskId == null || quote.amount == null || (opts.paid && quote.amount <= 0)) {
+    return { ok: false, error: 'INVALID' };
+  }
   // Reuse the Phase 5/6 task actions (each re-checks ownership of the task).
   if (opts.paid) {
     // Paid now means: complete the task and record a BOTH payment in the ledger.
