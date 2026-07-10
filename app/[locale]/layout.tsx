@@ -6,6 +6,7 @@ import {
   Inter,
   Frank_Ruhl_Libre,
   Assistant,
+  Bellefair,
 } from 'next/font/google';
 import { routing } from '@/lib/i18n/routing';
 
@@ -29,12 +30,19 @@ const assistant = Assistant({
   subsets: ['hebrew', 'latin'],
   display: 'swap',
 });
+const bellefair = Bellefair({
+  variable: '--font-bellefair',
+  weight: '400',
+  subsets: ['hebrew', 'latin'],
+  display: 'swap',
+});
 
 const fontVars = [
   playfair.variable,
   inter.variable,
   frankRuhl.variable,
   assistant.variable,
+  bellefair.variable,
 ].join(' ');
 
 export function generateStaticParams() {
@@ -58,11 +66,13 @@ export default async function LocaleLayout({
   const localeFontVars =
     locale === 'he'
       ? {
-          '--font-display': 'var(--font-frank-ruhl)',
+          '--font-display': 'var(--font-bellefair)',
+          '--font-display-strong': 'var(--font-frank-ruhl)',
           '--font-body': 'var(--font-assistant)',
         }
       : {
           '--font-display': 'var(--font-playfair)',
+          '--font-display-strong': 'var(--font-playfair)',
           '--font-body': 'var(--font-inter)',
         };
 

@@ -59,7 +59,7 @@ export function BudgetView(props: BudgetViewProps) {
       />
 
       {banner ? (
-        <p className="rounded-card bg-accent/20 p-4 text-sm text-text">{banner}</p>
+        <p className="rounded-card bg-muted/20 p-4 text-sm text-text">{banner}</p>
       ) : null}
 
       {props.budgetTotal == null ? (
