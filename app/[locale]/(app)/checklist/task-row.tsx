@@ -4,37 +4,65 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { TaskCategory, TaskPriority } from '@prisma/client';
 import { setTaskStatus, editTask, softDeleteTask, setTaskReminder } from '@/lib/actions/checklist';
+import { deleteTaskPayment } from '@/lib/actions/payments';
 import { resolveTaskTitle } from '@/lib/checklist/title';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '@/lib/checklist/schema';
+import { taskMoney } from '@/lib/payments/rollup';
+import { payerDisplayName, type PayerLabels } from '@/lib/payments/payer';
+import { PaymentForm } from '../payment-form';
 import type { SerializedTask } from './checklist-view';
 
 interface TaskRowProps {
   task: SerializedTask;
   locale: string;
   onChanged: () => void;
+  premium?: boolean;
+  partner1Name?: string | null;
+  partner2Name?: string | null;
 }
 
 function toDateInputValue(iso: string | null): string {
   return iso ? iso.slice(0, 10) : '';
 }
 
-export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
+export function TaskRow({
+  task,
+  locale,
+  onChanged,
+  premium = false,
+  partner1Name = null,
+  partner2Name = null,
+}: TaskRowProps) {
   const t = useTranslations('Checklist');
   const tCategory = useTranslations('TaskCategory');
   const tPriority = useTranslations('TaskPriority');
+  const tPayments = useTranslations('Payments');
+  const tPayer = useTranslations('Payer');
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [askingPaid, setAskingPaid] = useState(false);
-  const [paidInput, setPaidInput] = useState('');
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState<TaskCategory>(task.category);
   const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority);
   const [editDueDate, setEditDueDate] = useState('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
 
   const title = resolveTaskTitle(task, locale);
   const done = task.status === 'DONE';
+  const fmt = (n: number) => `₪${n.toLocaleString(locale)}`;
+
+  const payerLabels: PayerLabels = {
+    partner1: tPayer('partner1'),
+    partner2: tPayer('partner2'),
+    both: tPayer('both'),
+    partner1Family: tPayer('partner1Family'),
+    partner2Family: tPayer('partner2Family'),
+    family: (name: string) => tPayer('family', { name }),
+    other: tPayer('other'),
+  };
+  const money = taskMoney(task.estimatedCost, task.payments);
 
   function startEditing() {
     setError(false);
@@ -45,22 +73,19 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
     setIsEditing(true);
   }
 
-  async function completeWith(amountPaid: number | null) {
+  async function handleToggleDone() {
     setError(false);
     setPending(true);
-    const result = await setTaskStatus(task.id, true, amountPaid);
+    const result = await setTaskStatus(task.id, !done);
     setPending(false);
-    setAskingPaid(false);
-    setPaidInput('');
     if (!result.ok) { setError(true); return; }
     onChanged();
   }
 
-  async function handleToggleDone() {
-    if (!done) { setAskingPaid(true); return; }
+  async function handleDeletePayment(paymentId: string) {
     setError(false);
     setPending(true);
-    const result = await setTaskStatus(task.id, false);
+    const result = await deleteTaskPayment(paymentId);
     setPending(false);
     if (!result.ok) { setError(true); return; }
     onChanged();
@@ -225,43 +250,101 @@ export function TaskRow({ task, locale, onChanged }: TaskRowProps) {
         </span>
       </div>
 
-      {askingPaid ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-card bg-background p-2">
-          <label className="text-xs text-muted" htmlFor={`paid-${task.id}`}>
-            {t('paidPrompt')}
-          </label>
-          <input
-            id={`paid-${task.id}`}
-            type="number"
-            min="0"
-            dir="ltr"
-            value={paidInput}
-            onChange={(e) => setPaidInput(e.target.value)}
-            className="w-28 rounded-card border border-muted/30 bg-surface px-2 py-1 text-sm text-text"
-          />
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => completeWith(paidInput === '' ? null : Math.trunc(Number(paidInput)))}
-            className="rounded-card bg-primary px-3 py-1 text-sm text-background disabled:opacity-60"
-          >
-            {t('paidSave')}
-          </button>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => completeWith(null)}
-            className="rounded-card border border-muted/30 px-3 py-1 text-sm text-text"
-          >
-            {t('paidSkip')}
-          </button>
-        </div>
-      ) : null}
+      {premium ? (
+        <div className="flex flex-col gap-2 rounded-card bg-background p-3">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
+            <span>
+              {task.estimatedCost != null
+                ? tPayments('paidOfCost', { paid: fmt(money.paid), cost: fmt(money.cost ?? 0) })
+                : tPayments('paidOnly', { paid: fmt(money.paid) })}
+            </span>
+            {task.estimatedCost != null ? (
+              (money.remaining ?? 0) < 0 ? (
+                <span className="text-primary">{tPayments('overpaid')}</span>
+              ) : (
+                <span>{tPayments('remaining', { amount: fmt(money.remaining ?? 0) })}</span>
+              )
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                setShowPaymentForm((v) => !v);
+                setEditingPaymentId(null);
+              }}
+              className="ms-auto text-primary"
+            >
+              {tPayments('recordCta')}
+            </button>
+          </div>
 
-      {done && task.amountPaid != null ? (
-        <span className="text-xs text-muted">
-          {t('paidLabel', { amount: `₪${task.amountPaid.toLocaleString(locale)}` })}
-        </span>
+          {task.payments.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {task.payments.map((payment) => (
+                <li key={payment.id}>
+                  {editingPaymentId === payment.id ? (
+                    <PaymentForm
+                      taskId={task.id}
+                      partner1Name={partner1Name}
+                      partner2Name={partner2Name}
+                      initialCost={task.estimatedCost}
+                      editing={{
+                        paymentId: payment.id,
+                        amount: payment.amount,
+                        payer: payment.payer,
+                        payerLabel: payment.payerLabel,
+                        paidOn: payment.paidOn,
+                        note: payment.note,
+                      }}
+                      onCancel={() => setEditingPaymentId(null)}
+                      onSaved={() => setEditingPaymentId(null)}
+                    />
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                      <span className="text-text">{fmt(payment.amount)}</span>
+                      <span>
+                        {payerDisplayName(
+                          payment.payer,
+                          payment.payerLabel,
+                          { partner1Name, partner2Name },
+                          payerLabels,
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingPaymentId(payment.id);
+                          setShowPaymentForm(false);
+                        }}
+                        className="text-primary"
+                      >
+                        {tPayments('editPayment')}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => handleDeletePayment(payment.id)}
+                        className="text-red-600"
+                      >
+                        {tPayments('deletePayment')}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {showPaymentForm ? (
+            <PaymentForm
+              taskId={task.id}
+              partner1Name={partner1Name}
+              partner2Name={partner2Name}
+              initialCost={task.estimatedCost}
+              onCancel={() => setShowPaymentForm(false)}
+              onSaved={() => setShowPaymentForm(false)}
+            />
+          ) : null}
+        </div>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted">

@@ -49,25 +49,13 @@ export async function clearCategoryAllocation(category: TaskCategory): Promise<B
   return { ok: true };
 }
 
-async function updateOwnedTaskAmount(
-  taskId: string,
-  field: 'amountPaid' | 'estimatedCost',
-  amount: number | null,
-): Promise<BudgetActionResult> {
+export async function setTaskEstimatedCost(taskId: string, amount: number | null): Promise<BudgetActionResult> {
   const g = await requirePremiumWedding();
   if (!g.ok) return g;
   const parsed = taskAmountInput.safeParse({ amount });
   if (!parsed.success) return { ok: false, error: 'INVALID' };
   const task = await prisma.task.findFirst({ where: { id: taskId, weddingId: g.wedding.id }, select: { id: true } });
   if (!task) return { ok: false, error: 'NOT_FOUND' };
-  await prisma.task.update({ where: { id: task.id }, data: { [field]: parsed.data.amount } });
+  await prisma.task.update({ where: { id: task.id }, data: { estimatedCost: parsed.data.amount } });
   return { ok: true };
-}
-
-export async function setTaskAmountPaid(taskId: string, amount: number | null): Promise<BudgetActionResult> {
-  return updateOwnedTaskAmount(taskId, 'amountPaid', amount);
-}
-
-export async function setTaskEstimatedCost(taskId: string, amount: number | null): Promise<BudgetActionResult> {
-  return updateOwnedTaskAmount(taskId, 'estimatedCost', amount);
 }

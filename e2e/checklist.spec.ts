@@ -86,11 +86,8 @@ test.describe('checklist', () => {
     const firstCheckbox = page.getByRole('checkbox').first();
     await firstCheckbox.click();
 
-    // Completing a task now opens a skippable paid-amount prompt (Phase 5)
-    // instead of completing immediately; dismiss it via "Skip" to keep this
-    // test focused on the progress count.
-    await page.getByRole('button', { name: 'דילוג' }).click();
-
+    // Completing a task just toggles done (Task 5): recording a paid amount
+    // is now a separate Premium PaymentForm flow, not part of completion.
     // The checkbox is a controlled input driven by server state: it only
     // reflects `checked` once the server action resolves and the parent
     // re-fetches via router.refresh(), so wait for that round trip instead

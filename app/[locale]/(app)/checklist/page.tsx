@@ -6,9 +6,11 @@ import { seedTasksForWedding } from '@/lib/checklist/copy';
 import { redirect } from '@/lib/i18n/navigation';
 import { isPremium, capChecklist } from '@/lib/premium/entitlement';
 import { ChecklistView, type SerializedTask } from './checklist-view';
-import type { Task } from '@prisma/client';
+import type { Task, TaskPayment } from '@prisma/client';
 
-function serializeTask(task: Task): SerializedTask {
+type TaskWithPayments = Task & { payments: TaskPayment[] };
+
+function serializeTask(task: TaskWithPayments): SerializedTask {
   return {
     id: task.id,
     title_en: task.title_en,
@@ -26,6 +28,14 @@ function serializeTask(task: Task): SerializedTask {
     estimatedCost: task.estimatedCost,
     amountPaid: task.amountPaid,
     deletedAt: task.deletedAt ? task.deletedAt.toISOString() : null,
+    payments: task.payments.map((payment) => ({
+      id: payment.id,
+      amount: payment.amount,
+      payer: payment.payer,
+      payerLabel: payment.payerLabel,
+      paidOn: payment.paidOn ? payment.paidOn.toISOString() : null,
+      note: payment.note,
+    })),
   };
 }
 
@@ -71,6 +81,9 @@ export default async function ChecklistPage({
         trashedTasks={trashedTasks.map(serializeTask)}
         counts={{ done, total: tasks.length }}
         hiddenCount={hiddenCount}
+        premium={premium}
+        partner1Name={wedding!.partner1Name}
+        partner2Name={wedding!.partner2Name}
       />
     </main>
   );

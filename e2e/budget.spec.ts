@@ -69,18 +69,30 @@ test.describe('Budget planning', () => {
     // The category breakdown (Budget.breakdownTitle) renders once a total is set.
     await expect(page.getByRole('heading', { name: 'חלוקת קטגוריות' })).toBeVisible({ timeout: 10_000 });
 
-    // Complete the first checklist task with a paid amount.
+    // Complete the first checklist task, then record a payment on it via the
+    // premium task-row PaymentForm (Task 5: paid amounts are no longer set
+    // from a completion popup — they're a separate ledger entry recorded
+    // through Payments.recordCta / Payments.amount / Payments.save).
     await page.goto('/checklist');
     const firstCheckbox = page.getByRole('checkbox').first();
     await firstCheckbox.click();
-    await page.getByRole('spinbutton').first().fill('8000');
-    await page.getByRole('button', { name: 'שמירה' }).click();
 
     // The checkbox only reflects `checked` once the server action resolves
     // and the parent re-fetches via router.refresh() (same controlled-input
     // caveat as e2e/checklist.spec.ts).
     await expect(firstCheckbox).toBeChecked({ timeout: 10_000 });
-    await expect(page.getByText(/שולם.*8,000/).first()).toBeVisible();
+
+    await page.getByRole('button', { name: 'רישום תשלום' }).first().click();
+    await page.getByLabel('סכום').fill('8000');
+    await page.getByRole('button', { name: 'שמירה' }).click();
+
+    // Budget.rollupTasks only counts paid on DONE tasks, so the task-row's
+    // own paid summary should reflect the new payment immediately. This
+    // seeded task (prisma/seed.ts's first template) has no estimatedCost,
+    // so the summary renders Payments.paidOnly ("שולמו {paid}") rather than
+    // paidOfCost — if a future seed change gives it a cost, switch this
+    // assertion to match paidOfCost's "שולמו ... מתוך" instead.
+    await expect(page.getByText(/שולמו.*8,000/).first()).toBeVisible({ timeout: 10_000 });
 
     // Back on the budget page, that category shows the committed amount
     // (Budget.committed: "שולם").

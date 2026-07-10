@@ -6,9 +6,19 @@ import type { TaskCategory, TitleLocale } from '@prisma/client';
 import { Link, useRouter } from '@/lib/i18n/navigation';
 import { deletePrivateVendor } from '@/lib/actions/vendors';
 import { resolveVendorTitle } from '@/lib/vendors/title';
+import { taskMoney } from '@/lib/payments/rollup';
+import { payerDisplayName, type PayerLabels } from '@/lib/payments/payer';
+import type { SerializedPayment } from '../../checklist/checklist-view';
+import { PaymentForm } from '../../payment-form';
 import { QuotePanel, type SerializedQuote, type QuoteTask } from './quote-panel';
 import { EditPrivateVendor } from './edit-private-vendor';
 import { UpgradeButton } from '../../upgrade-button';
+
+export interface LinkedTaskMoney {
+  id: string;
+  estimatedCost: number | null;
+  payments: SerializedPayment[];
+}
 
 export interface SerializedVendorDetail {
   id: string;
@@ -35,6 +45,9 @@ interface VendorDetailProps {
   quote: SerializedQuote | null;
   tasks: QuoteTask[];
   premium?: boolean;
+  linkedTask?: LinkedTaskMoney | null;
+  partner1Name?: string | null;
+  partner2Name?: string | null;
 }
 
 // '←' isn't in the eslint `react/jsx-no-literals` allowedStrings list (only
@@ -44,10 +57,21 @@ function formatBackLabel(label: string): string {
   return `← ${label}`;
 }
 
-export function VendorDetail({ locale, vendor, quote, tasks, premium = false }: VendorDetailProps) {
+export function VendorDetail({
+  locale,
+  vendor,
+  quote,
+  tasks,
+  premium = false,
+  linkedTask = null,
+  partner1Name = null,
+  partner2Name = null,
+}: VendorDetailProps) {
   const t = useTranslations('Vendors');
   const tCategory = useTranslations('TaskCategory');
   const tPremium = useTranslations('Premium');
+  const tPayments = useTranslations('Payments');
+  const tPayer = useTranslations('Payer');
   const router = useRouter();
 
   const displayName = resolveVendorTitle(vendor, locale);
@@ -57,6 +81,18 @@ export function VendorDetail({ locale, vendor, quote, tasks, premium = false }: 
   const [isEditing, setIsEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+
+  const payerLabels: PayerLabels = {
+    partner1: tPayer('partner1'),
+    partner2: tPayer('partner2'),
+    both: tPayer('both'),
+    partner1Family: tPayer('partner1Family'),
+    partner2Family: tPayer('partner2Family'),
+    family: (name: string) => tPayer('family', { name }),
+    other: tPayer('other'),
+  };
+  const money = linkedTask ? taskMoney(linkedTask.estimatedCost, linkedTask.payments) : null;
 
   function refresh() {
     router.refresh();
@@ -166,6 +202,64 @@ export function VendorDetail({ locale, vendor, quote, tasks, premium = false }: 
       ) : (
         <QuotePanel vendorId={vendor.id} quote={quote} tasks={tasks} onChanged={refresh} />
       )}
+
+      {!locked && premium && linkedTask && money ? (
+        <section className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-sm">
+          <h2 className="font-display text-lg text-text">{tPayments('title')}</h2>
+
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
+            <span>
+              {linkedTask.estimatedCost != null
+                ? tPayments('paidOfCost', { paid: fmt(money.paid), cost: fmt(money.cost ?? 0) })
+                : tPayments('paidOnly', { paid: fmt(money.paid) })}
+            </span>
+            {linkedTask.estimatedCost != null ? (
+              (money.remaining ?? 0) < 0 ? (
+                <span className="text-primary">{tPayments('overpaid')}</span>
+              ) : (
+                <span>{tPayments('remaining', { amount: fmt(money.remaining ?? 0) })}</span>
+              )
+            ) : null}
+          </div>
+
+          {linkedTask.payments.length > 0 ? (
+            <ul className="flex flex-col gap-1">
+              {linkedTask.payments.map((payment) => (
+                <li key={payment.id} className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span className="text-text">{fmt(payment.amount)}</span>
+                  <span>
+                    {payerDisplayName(
+                      payment.payer,
+                      payment.payerLabel,
+                      { partner1Name, partner2Name },
+                      payerLabels,
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {showPaymentForm ? (
+            <PaymentForm
+              taskId={linkedTask.id}
+              partner1Name={partner1Name}
+              partner2Name={partner2Name}
+              initialCost={linkedTask.estimatedCost}
+              onCancel={() => setShowPaymentForm(false)}
+              onSaved={() => setShowPaymentForm(false)}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowPaymentForm(true)}
+              className="self-start rounded-card bg-primary px-3 py-1.5 text-sm font-medium text-background"
+            >
+              {tPayments('recordCta')}
+            </button>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

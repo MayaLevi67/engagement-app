@@ -7,6 +7,7 @@ import { getCurrentWedding } from '@/lib/wedding/queries';
 import { privateVendorSchema, quoteInput } from '@/lib/vendors/schema';
 import { setTaskEstimatedCost } from '@/lib/actions/budget';
 import { setTaskStatus } from '@/lib/actions/checklist';
+import { recordTaskPayment } from '@/lib/actions/payments';
 import { requireWedding, requirePremiumWedding } from '@/lib/premium/gate';
 import { isPremium } from '@/lib/premium/entitlement';
 
@@ -129,11 +130,31 @@ export async function pushQuoteToBudget(vendorId: string, opts: { paid: boolean 
     select: { amount: true, taskId: true },
   });
   if (!quote) return { ok: false, error: 'NOT_FOUND' };
-  if (quote.taskId == null || quote.amount == null) return { ok: false, error: 'INVALID' };
-  // Reuse the Phase 5 task actions (each re-checks ownership of the task).
-  const result = opts.paid
-    ? await setTaskStatus(quote.taskId, true, quote.amount)
-    : await setTaskEstimatedCost(quote.taskId, quote.amount);
+  // Paid must have a positive amount (recordTaskPayment's ledger entry requires it) — otherwise
+  // the task would be marked DONE with no payment recorded. The planned (non-paid) path keeps
+  // accepting 0, matching setTaskEstimatedCost's own validation (taskAmountInput allows 0).
+  if (quote.taskId == null || quote.amount == null || (opts.paid && quote.amount <= 0)) {
+    return { ok: false, error: 'INVALID' };
+  }
+  // Reuse the Phase 5/6 task actions (each re-checks ownership of the task).
+  if (opts.paid) {
+    // Paid now means: complete the task and record a BOTH payment in the ledger.
+    const doneRes = await setTaskStatus(quote.taskId, true);
+    if (!doneRes.ok) return { ok: false, error: doneRes.error === 'INVALID' ? 'INVALID' : 'NOT_FOUND' };
+    const payRes = await recordTaskPayment(quote.taskId, {
+      amount: quote.amount, payer: 'BOTH', cost: quote.amount,
+    });
+    if (!payRes.ok) {
+      return {
+        ok: false,
+        error: payRes.error === 'INVALID' ? 'INVALID'
+          : payRes.error === 'PREMIUM_REQUIRED' ? 'PREMIUM_REQUIRED'
+          : 'NOT_FOUND',
+      };
+    }
+    return { ok: true };
+  }
+  const result = await setTaskEstimatedCost(quote.taskId, quote.amount);
   if (!result.ok) return { ok: false, error: result.error === 'INVALID' ? 'INVALID' : 'NOT_FOUND' };
   return { ok: true };
 }

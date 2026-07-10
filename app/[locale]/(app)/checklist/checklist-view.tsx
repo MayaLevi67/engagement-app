@@ -3,12 +3,21 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/lib/i18n/navigation';
-import type { TaskCategory, TaskPriority, TaskStatus, TitleLocale } from '@prisma/client';
+import type { PayerRole, TaskCategory, TaskPriority, TaskStatus, TitleLocale } from '@prisma/client';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '@/lib/checklist/schema';
 import { TaskRow } from './task-row';
 import { AddCustomTask } from './add-custom-task';
 import { TrashView } from './trash-view';
 import { UpgradeButton } from '../upgrade-button';
+
+export interface SerializedPayment {
+  id: string;
+  amount: number;
+  payer: PayerRole;
+  payerLabel: string | null;
+  paidOn: string | null;
+  note: string | null;
+}
 
 export interface SerializedTask {
   id: string;
@@ -27,6 +36,7 @@ export interface SerializedTask {
   estimatedCost: number | null;
   amountPaid: number | null;
   deletedAt: string | null;
+  payments: SerializedPayment[];
 }
 
 type GroupMode = 'category' | 'timeline';
@@ -60,9 +70,21 @@ interface ChecklistViewProps {
   trashedTasks: SerializedTask[];
   counts: { done: number; total: number };
   hiddenCount?: number;
+  premium?: boolean;
+  partner1Name?: string | null;
+  partner2Name?: string | null;
 }
 
-export function ChecklistView({ locale, tasks, trashedTasks, counts, hiddenCount = 0 }: ChecklistViewProps) {
+export function ChecklistView({
+  locale,
+  tasks,
+  trashedTasks,
+  counts,
+  hiddenCount = 0,
+  premium = false,
+  partner1Name = null,
+  partner2Name = null,
+}: ChecklistViewProps) {
   const t = useTranslations('Checklist');
   const tCategory = useTranslations('TaskCategory');
   const tPriority = useTranslations('TaskPriority');
@@ -256,7 +278,15 @@ export function ChecklistView({ locale, tasks, trashedTasks, counts, hiddenCount
               <h2 className="font-display text-lg text-text">{group.label}</h2>
               <div className="flex flex-col gap-2">
                 {group.tasks.map((task) => (
-                  <TaskRow key={task.id} task={task} locale={locale} onChanged={refresh} />
+                  <TaskRow
+                    key={task.id}
+                    task={task}
+                    locale={locale}
+                    onChanged={refresh}
+                    premium={premium}
+                    partner1Name={partner1Name}
+                    partner2Name={partner2Name}
+                  />
                 ))}
               </div>
             </section>

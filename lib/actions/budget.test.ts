@@ -15,7 +15,7 @@ import { prisma } from '@/lib/db';
 import { getCurrentWedding } from '@/lib/wedding/queries';
 import {
   setBudgetTotal, setAvgGiftPerGuest, setCategoryAllocation, clearCategoryAllocation,
-  setTaskAmountPaid, setTaskEstimatedCost,
+  setTaskEstimatedCost,
 } from './budget';
 
 beforeEach(() => {
@@ -73,20 +73,6 @@ describe('category allocation (pin)', () => {
   });
 });
 
-describe('setTaskAmountPaid', () => {
-  it('updates paid amount on an owned task', async () => {
-    (prisma.task.findFirst as unknown as Mock).mockResolvedValue({ id: 't1' });
-    expect(await setTaskAmountPaid('t1', 10000)).toEqual({ ok: true });
-    expect(prisma.task.update).toHaveBeenCalledWith({ where: { id: 't1' }, data: { amountPaid: 10000 } });
-  });
-
-  it('rejects a task the couple does not own', async () => {
-    (prisma.task.findFirst as unknown as Mock).mockResolvedValue(null);
-    expect(await setTaskAmountPaid('tX', 10000)).toEqual({ ok: false, error: 'NOT_FOUND' });
-    expect(prisma.task.update).not.toHaveBeenCalled();
-  });
-});
-
 describe('setTaskEstimatedCost', () => {
   it('updates estimated cost on an owned task', async () => {
     (prisma.task.findFirst as unknown as Mock).mockResolvedValue({ id: 't1' });
@@ -108,7 +94,6 @@ describe('premium gating (budget is unconditionally premium)', () => {
     ['setAvgGiftPerGuest', () => setAvgGiftPerGuest(500)],
     ['setCategoryAllocation', () => setCategoryAllocation('MUSIC', 8000)],
     ['clearCategoryAllocation', () => clearCategoryAllocation('MUSIC')],
-    ['setTaskAmountPaid', () => setTaskAmountPaid('t1', 10000)],
     ['setTaskEstimatedCost', () => setTaskEstimatedCost('t1', 5000)],
   ];
 

@@ -33,7 +33,8 @@
     "checklist": "Checklist",
     "budget": "Budget",
     "concepts": "Concepts",
-    "vendors": "Vendors"
+    "vendors": "Vendors",
+    "payments": "Payments"
   },
   "Dashboard": {
     "placeholder": "Dashboard (protected)",
@@ -210,11 +211,7 @@
     "reminderOff": "Reminder off",
     "edit": "Edit",
     "delete": "Delete",
-    "error": "Something went wrong. Please try again",
-    "paidPrompt": "How much did you pay? (optional)",
-    "paidSkip": "Skip",
-    "paidSave": "Save",
-    "paidLabel": "Paid {amount}"
+    "error": "Something went wrong. Please try again"
   },
   "TaskCategory": {
     "VENUE": "Venue",
@@ -365,6 +362,7 @@
     "noTask": "No task linked",
     "addToBudgetPlanned": "Add to budget (planned)",
     "addToBudgetPaid": "Add to budget (paid)",
+    "addToBudgetPaidDone": "Already marked paid — manage payments below.",
     "addedToBudget": "Added to your budget",
     "save": "Save",
     "cancel": "Cancel",
@@ -411,5 +409,45 @@
     "confirming": "Confirming your payment…",
     "premiumActive": "Premium ✓",
     "checkoutError": "Something went wrong starting checkout. Please try again."
+  },
+  "Payer": {
+    "partner1": "Partner 1",
+    "partner2": "Partner 2",
+    "both": "Both",
+    "partner1Family": "Partner 1's family",
+    "partner2Family": "Partner 2's family",
+    "family": "{name}'s family",
+    "other": "Other"
+  },
+  "Payments": {
+    "title": "Payments",
+    "recordCta": "Record payment",
+    "cost": "Cost",
+    "amount": "Amount",
+    "payer": "Paid by",
+    "payerLabelOther": "Who paid?",
+    "date": "Date paid",
+    "note": "Note",
+    "save": "Save",
+    "cancel": "Cancel",
+    "paidOfCost": "{paid} of {cost} paid",
+  "paidOnly": "{paid} paid",
+    "remaining": "{amount} remaining",
+    "overpaid": "Paid more than the cost",
+    "columnTask": "Task",
+    "columnVendor": "Vendor",
+    "columnCost": "Cost",
+    "columnPaid": "Paid",
+    "columnRemaining": "Remaining",
+    "byPayerTitle": "By payer",
+    "totalsCost": "Total cost",
+    "totalsPaid": "Total paid",
+    "totalsRemaining": "Total remaining",
+    "paywallTitle": "Payment tracking is a Premium feature",
+    "paywallBody": "Upgrade to record deposits and payments, and see cost, paid, and remaining for every task and vendor.",
+    "empty": "No payments recorded yet",
+    "editPayment": "Edit",
+    "deletePayment": "Delete",
+    "error": "Something went wrong. Please try again"
   }
 }

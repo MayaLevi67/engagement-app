@@ -30,6 +30,7 @@ describe('SideNav', () => {
     expect(screen.getByText(en.Nav.dashboard)).toBeInTheDocument();
     expect(screen.getByText(en.Nav.checklist)).toBeInTheDocument();
     expect(screen.getByText(en.Nav.budget)).toBeInTheDocument();
+    expect(screen.getByText(en.Nav.payments)).toBeInTheDocument();
     expect(screen.getByText(en.Nav.concepts)).toBeInTheDocument();
     expect(screen.getByText(en.Nav.vendors)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: en.Auth.logout })).toBeInTheDocument();

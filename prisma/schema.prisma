@@ -78,6 +78,15 @@ enum PaymentStatus {
   FAILED
 }
 
+enum PayerRole {
+  PARTNER_1
+  PARTNER_2
+  BOTH
+  PARTNER_1_FAMILY
+  PARTNER_2_FAMILY
+  OTHER
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -127,6 +136,7 @@ model Wedding {
 
   premiumUnlockedAt DateTime?
   payments          Payment[]
+  taskPayments      TaskPayment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -214,6 +224,8 @@ model Task {
 
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
+
+  payments          TaskPayment[]
 
   @@index([weddingId, deletedAt])
 }
@@ -384,4 +396,22 @@ model Payment {
   updatedAt               DateTime      @updatedAt
 
   @@index([weddingId])
+}
+
+model TaskPayment {
+  id         String    @id @default(cuid())
+  weddingId  String
+  wedding    Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  taskId     String
+  task       Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  amount     Int
+  payer      PayerRole
+  payerLabel String?
+  paidOn     DateTime?
+  note       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([weddingId])
+  @@index([taskId])
 }

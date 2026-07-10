@@ -7,7 +7,7 @@ import { getTasks } from '@/lib/checklist/queries';
 import { resolveTaskTitle } from '@/lib/checklist/title';
 import { redirect } from '@/lib/i18n/navigation';
 import { isPremium } from '@/lib/premium/entitlement';
-import { VendorDetail, type SerializedVendorDetail } from './vendor-detail';
+import { VendorDetail, type SerializedVendorDetail, type LinkedTaskMoney } from './vendor-detail';
 import type { SerializedQuote, QuoteTask } from './quote-panel';
 
 export default async function VendorDetailPage({
@@ -58,8 +58,28 @@ export default async function VendorDetailPage({
     : null;
 
   const serializedTasks: QuoteTask[] = tasks.map(
-    (task): QuoteTask => ({ id: task.id, title: resolveTaskTitle(task, locale) }),
+    (task): QuoteTask => ({
+      id: task.id,
+      title: resolveTaskTitle(task, locale),
+      hasPayments: task.payments.length > 0,
+    }),
   );
+
+  const linkedTaskSource = quote?.taskId ? tasks.find((task) => task.id === quote.taskId) ?? null : null;
+  const linkedTask: LinkedTaskMoney | null = linkedTaskSource
+    ? {
+        id: linkedTaskSource.id,
+        estimatedCost: linkedTaskSource.estimatedCost,
+        payments: linkedTaskSource.payments.map((payment) => ({
+          id: payment.id,
+          amount: payment.amount,
+          payer: payment.payer,
+          payerLabel: payment.payerLabel,
+          paidOn: payment.paidOn ? payment.paidOn.toISOString() : null,
+          note: payment.note,
+        })),
+      }
+    : null;
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6 sm:p-8">
@@ -69,6 +89,9 @@ export default async function VendorDetailPage({
         quote={serializedQuote}
         tasks={serializedTasks}
         premium={isPremium(wedding!)}
+        linkedTask={linkedTask}
+        partner1Name={wedding!.partner1Name}
+        partner2Name={wedding!.partner2Name}
       />
     </main>
   );
