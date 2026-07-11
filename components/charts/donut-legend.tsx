@@ -14,7 +14,7 @@ export function DonutLegend({
   return (
     <ul className="flex flex-col gap-1.5">
       {sorted.map((s) => (
-        <li key={s.label} className="flex items-center gap-2 text-sm">
+        <li key={`${s.token}-${s.label}`} className="flex items-center gap-2 text-sm">
           <span className={`inline-block h-3 w-3 shrink-0 rounded-full bg-${s.token}`} aria-hidden="true" />
           <span className="text-text">{s.label}</span>
           <span className="ms-auto text-muted">{formatRow(s.value / total)} · {formatAmount(s.value)}</span>
