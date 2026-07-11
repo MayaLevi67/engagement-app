@@ -11,6 +11,19 @@
   --color-muted: #8A8578;
   --color-line: rgba(36, 35, 32, 0.14);
 
+  --color-chart-1: #3C6248;
+  --color-chart-2: #9C3F4C;
+  --color-chart-3: #6E9560;
+  --color-chart-4: #B36A74;
+  --color-chart-5: #4A7A52;
+  --color-chart-6: #7E3541;
+  --color-chart-7: #7C9454;
+  --color-chart-8: #A84E5A;
+  --color-chart-9: #35643F;
+  --color-chart-10: #8A5560;
+  --color-chart-11: #5C8A4E;
+  --color-chart-12: #7C3846;
+
   --font-display: var(--font-playfair);
   --font-display-strong: var(--font-frank-ruhl);
   --font-body: var(--font-inter);
