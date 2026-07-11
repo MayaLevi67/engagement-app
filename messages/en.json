@@ -453,5 +453,12 @@
   "Editorial": {
     "photoPlaceholder": "Photo",
     "photoAlt": "Wedding photo"
+  },
+  "Charts": {
+    "allocationTitle": "Recommended allocation",
+    "byPayerTitle": "Paid by",
+    "legendRow": "{percent}%",
+    "sliceTitle": "{label}: {percent}% · {amount}",
+    "empty": "No data yet"
   }
 }

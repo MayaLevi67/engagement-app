@@ -453,5 +453,12 @@
   "Editorial": {
     "photoPlaceholder": "תמונה",
     "photoAlt": "תמונת חתונה"
+  },
+  "Charts": {
+    "allocationTitle": "הקצאה מומלצת",
+    "byPayerTitle": "מי שילם",
+    "legendRow": "{percent}%",
+    "sliceTitle": "{label}: {percent}% · {amount}",
+    "empty": "אין נתונים עדיין"
   }
 }
