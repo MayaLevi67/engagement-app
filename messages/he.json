@@ -449,5 +449,16 @@
     "editPayment": "עריכה",
     "deletePayment": "מחיקה",
     "error": "משהו השתבש. נסו שוב"
+  },
+  "Editorial": {
+    "photoPlaceholder": "תמונה",
+    "photoAlt": "תמונת חתונה"
+  },
+  "Charts": {
+    "allocationTitle": "הקצאה מומלצת",
+    "byPayerTitle": "מי שילם",
+    "legendRow": "{percent}%",
+    "sliceTitle": "{label}: {percent}% · {amount}",
+    "empty": "אין נתונים עדיין"
   }
 }

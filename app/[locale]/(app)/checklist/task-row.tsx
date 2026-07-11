@@ -245,7 +245,7 @@ export function TaskRow({
         <span className="rounded-card bg-background px-2 py-0.5 text-xs text-muted">
           {tCategory(task.category)}
         </span>
-        <span className="rounded-card bg-accent/20 px-2 py-0.5 text-xs text-text">
+        <span className="rounded-card bg-muted/20 px-2 py-0.5 text-xs text-text">
           {tPriority(task.priority)}
         </span>
       </div>

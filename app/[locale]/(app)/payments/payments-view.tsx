@@ -8,6 +8,8 @@ import { deleteTaskPayment } from '@/lib/actions/payments';
 import { rollup } from '@/lib/payments/rollup';
 import { payerDisplayName, type PayerLabels } from '@/lib/payments/payer';
 import { PaymentForm } from '../payment-form';
+import { DonutChart } from '@/components/charts/donut-chart';
+import { payerToken } from '@/components/charts/chart-palette';
 
 export interface SerializedPayment {
   id: string;
@@ -166,6 +168,7 @@ function PaymentTaskRow({
 export function PaymentsView({ rows, locale, partner1Name, partner2Name }: PaymentsViewProps) {
   const t = useTranslations('Payments');
   const tPayer = useTranslations('Payer');
+  const tCharts = useTranslations('Charts');
   const router = useRouter();
   const fmt = (n: number) => formatMoney(n, locale);
 
@@ -180,6 +183,14 @@ export function PaymentsView({ rows, locale, partner1Name, partner2Name }: Payme
   };
 
   const totals = rollup(rows);
+
+  const byPayerSlices = totals.byPayer
+    .filter((entry) => entry.amount > 0)
+    .map((entry) => ({
+      label: payerDisplayName(entry.payer, entry.payerLabel, { partner1Name, partner2Name }, payerLabels),
+      value: entry.amount,
+      token: payerToken(entry.payer, entry.payerLabel),
+    }));
 
   function handleChanged() {
     router.refresh();
@@ -232,7 +243,17 @@ export function PaymentsView({ rows, locale, partner1Name, partner2Name }: Payme
 
           <section className="rounded-card bg-surface p-4 shadow-sm">
             <h2 className="text-sm font-medium text-text">{t('byPayerTitle')}</h2>
-            <ul className="mt-2 flex flex-col gap-1">
+            <DonutChart
+              title={tCharts('byPayerTitle')}
+              slices={byPayerSlices}
+              sliceTitle={(s, p) =>
+                tCharts('sliceTitle', { label: s.label, percent: Math.round(p * 100), amount: fmt(s.value) })
+              }
+              formatRow={(p) => tCharts('legendRow', { percent: Math.round(p * 100) })}
+              formatAmount={fmt}
+              emptyLabel={tCharts('empty')}
+            />
+            <ul className="mt-2 flex flex-col gap-1" data-testid="by-payer-list">
               {totals.byPayer.map((entry) => (
                 <li
                   key={`${entry.payer}::${entry.payerLabel ?? ''}`}

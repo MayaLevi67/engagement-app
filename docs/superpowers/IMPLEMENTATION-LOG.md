@@ -78,6 +78,39 @@ Each phase was built via the superpowers brainstorm → spec → plan → subage
 
 ---
 
+## Feature — Old-Money Editorial Redesign (Foundation) ✅ complete (branch `feature-editorial-foundation`)
+
+**Spec:** `specs/2026-07-10-old-money-editorial-foundation-design.md` · **Plan:** `plans/2026-07-10-editorial-foundation.md`
+**Branch `feature-editorial-foundation`**, base `4b9c8d9` (payments merged), HEAD `a61d746`, 7 commits. 6 tasks + final review. **Sub-project 1 of the UI overhaul: the design foundation** (per-page bespoke compositions are follow-on waves). Shaped via the brainstorming visual companion (mockups persist under `.superpowers/brainstorm/`).
+**Delivered:** an "old-money / Vogue editorial" **visual system** — presentational only, no behavior/data/gating change. (1) Retuned `@theme` tokens in `app/globals.css`: cream `#F4EEE2` bg, ivory `#FBF8F1` surface, sage `#587151` primary, + `forest #2C3A2C` / `wine #7A2E3A` / `oxblood #4E2028` / `line`; **gold removed** (a `globals-nogold.test.ts` grep guard enforces it). (2) **Bellefair** wired as the Hebrew display font (+ `--font-display-strong` → Frank Ruhl for future small he titles); English stays Playfair. (3) A forest **`Hero`** band + `monogram` helper. (4) An editorial component kit in **`components/editorial/`** — `SectionHeader`, `Card` (elevated, logical `border-s` accent), `FeatureCard`, `Pill`, `ImageBlock`, `ImageRail` (signature spread), `ImageSection`, `PhotoCard` — token-based, RTL-safe, **image slots degrade gracefully when empty**. (5) The palette/type cascade **app-wide** (tokens) — all 11 routes verified rendering in he+en with no breakage. (6) The **Dashboard** recomposed in the magazine/image-rail style as the showcase template. New `Editorial` i18n namespace (he/en).
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **415 unit + 24 e2e** (e2e `--workers=1`, warm) — all green. 6/6 acceptance criteria. Final review (opus): **ready to merge, no Critical/Important**.
+
+**Key decisions (from brainstorming):** **Hybrid** direction (light legible pages + dark cinematic bands) · **green-led, no gold** (sage = action, wine = emphasis/money, forest/oxblood = dark bands) · classic **forest hero band** (no photo in hero; imagery lives in-page via the kit) · **Bellefair** Hebrew display · **magazine/asymmetric** signature (image-rail spread), each page composed *distinctly* from the shared kit.
+
+**Deferred to per-page waves (follow-on specs), tracked here so a reviewer doesn't flag as dead:** `--font-display-strong` + `FeatureCard`/`PhotoCard`/`ImageSection` are staged for the waves (the legibility fallback applies where dense Hebrew tables appear); bespoke compositions for Checklist, Payments, Budget, Concepts, Vendors; couple-supplied photography to fill the (currently empty) image slots.
+
+**Follow-ups (non-blocking):** `--color-muted` (#8A8578) on cream is 3.18:1 — fails AA-normal, passes AA-large; **pre-existing** (predates the redesign) — darken in a later pass. Settings native checkbox uses the browser-default accent. FeatureCard test under-asserts the kicker. The e2e suite needs **`--workers=1`** (or a prod build) — parallel overwhelms the dev server; fold into the eventual CI e2e step.
+
+---
+
+## Feature — Budget & Payments Donut Charts ✅ complete (on branch `feature-editorial-foundation`)
+
+**Spec:** `specs/2026-07-11-budget-payments-charts-design.md` · **Plan:** `plans/2026-07-11-budget-payments-charts.md`
+**Branch `feature-editorial-foundation`** (stacked on the editorial foundation for its palette/kit), base `5ea7523`, HEAD `710beb0`, 8 commits. 4 tasks + final review. Shaped via the brainstorming visual companion + the **dataviz** skill (chart-color method). Presentational-only.
+**Delivered:** two hand-rolled **inline-SVG donut charts** (no chart library) in the old-money palette. (1) A **recommended-allocation** donut on the Budget page over the optimizer's per-category recommendations (all non-zero categories); (2) a **by-payer** donut on the Payments page over the existing by-payer rollup (payer roles resolved to the couple's names). Foundation: a validated fixed-order `--color-chart-1..12` greens+burgundy token ramp in `app/globals.css`; pure `components/charts/donut-geometry.ts` (`donutSegments`/`arcPath`) + `chart-palette.ts` (stable `categoryToken`/`payerToken` entity→token maps); presentational `Donut`/`DonutLegend`/`DonutChart`; a new `Charts` i18n namespace (he/en). Each page keeps its existing numeric breakdown/list as the text/table fallback (scoped by `data-testid`).
+**Verification at HEAD:** lint (`--max-warnings 0`), typecheck, **426 unit + e2e** (charts + payments, warm `--workers=1`) — all green. Final review (opus): **merge-ready, no Critical/Important**.
+
+**Key decisions / deviations:**
+- **Chart palette is greens + burgundy ONLY** (per the user's constraint), no gold — cream/ivory are the chart *surface* + the 2px inter-slice gaps, never slice fills.
+- **Accepted dataviz tradeoff:** a strict 12-color two-hue ramp cannot pass the validator's chroma-floor + CVD adjacent-pair separation (lightness + contrast DO pass for all 12). This is **accepted and mitigated by the always-present legend** (label + % + ₪ — the mandated secondary encoding) + a per-slice `<title>`; identity is never color-alone.
+- **Color follows the entity, never rank** — `categoryToken` maps by `TaskCategory` enum order, `payerToken` by `PayerRole` order (distinct `OTHER` labels hashed to chart-7..12); a filter that changes slice count never repaints survivors.
+- **Full-ring (single-slice) donut** renders as a two-arc fill-rule annulus (SVG can't draw a full circle in one arc command); the wiring filters `value > 0` and the gap is clamped to `min(1.2°, span/2)` so tiny slices never invert.
+- **Tailwind v4 dynamic-class safelist**: `fill-chart-*`/`bg-chart-*` are built at runtime, so a hidden safelist span forces all 24 classes to generate (verified via build + CSS grep) — without it the donut renders colorless.
+
+**Follow-ups (non-blocking):** hover-tooltip richness beyond `<title>` / click-to-filter / animation (deferred); chart-7 `#7C9454` is a yellower olive-green outlier (still green, not gold) kept for slice separation — tweak on sight; slice `key` now `token-label` (disambiguates same-label slices); applying the charts within the eventual Budget/Payments editorial *waves* (this drops them in; the waves refine surrounding layout).
+
+---
+
 ## Feature — Payments & Deposits ✅ complete (branch `feature-payments-deposits`)
 
 **Spec:** `specs/2026-07-09-payments-deposits-design.md` · **Plan:** `plans/2026-07-09-payments-deposits.md`
@@ -263,5 +296,5 @@ Nothing here blocks any merge. Grouped for future phases/cleanups.
 
 ## Roadmap position
 
-Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel), Phase 9 (Premium / Payments). Post-phase feature work: Logout, dev premium toggle, couple-app side nav, **Payments & Deposits** (per-task cost/paid/remaining + by-payer roll-up).
+Done: Phase 1 (Foundation), Phase 2 (Onboarding & Profile), Phase 3 (Checklist & Timeline), Phase 4 (Wedding Concepts), Phase 5 (Budget Planning & Optimization), Phase 6 (Vendor Database), Phase 7 (Dashboard), Phase 8 (Admin Panel), Phase 9 (Premium / Payments). Post-phase feature work: Logout, dev premium toggle, couple-app side nav, **Payments & Deposits** (per-task cost/paid/remaining + by-payer roll-up), **Old-Money Editorial Redesign — Foundation** (palette/tokens, Bellefair he-display, forest hero + editorial component kit, Dashboard showcase), **Budget & Payments Donut Charts** (allocation + by-payer donuts, greens+burgundy chart tokens, inline SVG). Next for the redesign: per-page editorial waves (Checklist, Payments, Budget, Concepts, Vendors) + couple-supplied photography into the image slots.
 Next: **Phase 10 — AI Multi-Agent Layer** (AI-driven vendor matching + budget optimization, on top of the `lib/vendors/recommend` + `lib/budget/optimize` + `lib/dashboard` seams; premium can gate AI features via the Phase 9 entitlement). This is the final planned phase. Candidate future adds the codebase is now shaped for: refund/dispute webhooks (revoke premium), in-app **messaging** to vendors (contact schema ready), **user/couple management + audit log** (admin shell has a home), and an automated i18n key-parity CI check.

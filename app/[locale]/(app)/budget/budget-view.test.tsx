@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import en from '@/messages/en.json';
 
@@ -42,8 +42,13 @@ const baseProps = {
 describe('BudgetView', () => {
   it('renders category rows with committed amounts', () => {
     renderView(baseProps);
-    expect(screen.getByText(/venue/i)).toBeTruthy();
-    expect(screen.getAllByText(/committed/i).length).toBeGreaterThan(0);
+    // "Venue" also appears in the allocation donut's own legend, so scope
+    // the query to the category breakdown container (the fallback list)
+    // itself. This still tolerates the donut's duplicate text, but fails
+    // if the breakdown fallback is ever removed from the page.
+    const breakdown = within(screen.getByTestId('category-breakdown'));
+    expect(breakdown.getAllByText(/venue/i).length).toBeGreaterThan(0);
+    expect(breakdown.getAllByText(/committed/i).length).toBeGreaterThan(0);
   });
 
   it('shows an over-budget banner', () => {

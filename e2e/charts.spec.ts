@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { prisma } from '../lib/db';
 
 function uniqueEmail() {
-  return `e2e-payments-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+  return `e2e-charts-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
 }
 
 async function registerAndLogin(page: Page, email: string) {
@@ -60,80 +60,64 @@ async function makePremium(email: string): Promise<void> {
   await prisma.wedding.update({ where: { id: weddingId }, data: { premiumUnlockedAt: new Date() } });
 }
 
-const RECORD_CTA = /^Record payment$|^רישום תשלום$/;
+const SET_BUDGET_CTA = /^Set budget$|^הגדרת תקציב$/;
 const SAVE = /^Save$|^שמירה$/;
+const RECORD_CTA = /^Record payment$|^רישום תשלום$/;
 const COST_LABEL = /^Cost$|^עלות$/;
 const AMOUNT_LABEL = /^Amount$|^סכום$/;
 // Not anchored: the <label> wraps the <select>, and the accessible name the
 // browser computes for a label-wrapped combobox appends the selected
 // option's text (e.g. "Paid by" + "Both"), so an exact ^$ match never fires.
 const PAYER_LABEL = /Paid by|שולם על ידי/;
-const PAYWALL_TITLE = /Payment tracking is a Premium feature|מעקב תשלומים הוא פיצ'?ר פרימיום/;
-const PAID_OF_COST = /₪3,000 of ₪10,000 paid|שולמו ₪3,000 מתוך ₪10,000/;
-const REMAINING = /₪7,000 remaining|נותרו ₪7,000/;
 const PAYMENTS_NAV = /^Payments$|^תשלומים$/;
-const BOTH_LABEL = /Both|משותף/;
+const ALLOCATION_TITLE = /^Recommended allocation$|^הקצאה מומלצת$/;
+const BY_PAYER_TITLE = /^Paid by$|^מי שילם$/;
+const PAID_OF_COST = /₪3,000 of ₪10,000 paid|שולמו ₪3,000 מתוך ₪10,000/;
 
-test.describe('payments', () => {
-  test('a premium couple records a task payment and sees it reflected in checklist and /payments', async ({
+test.describe('charts', () => {
+  test('a premium couple sees the allocation donut on Budget and the by-payer donut on Payments', async ({
     page,
   }) => {
     const email = uniqueEmail();
     await registerAndOnboard(page, email);
     await makePremium(email);
 
+    // Set a budget total so the recommended per-category allocation (and its
+    // donut) has non-zero slices to render.
+    await page.goto('/budget');
+    await page.getByRole('button', { name: SET_BUDGET_CTA }).click();
+    await page.getByRole('spinbutton').first().fill('100000');
+    await page.getByRole('button', { name: SAVE }).first().click();
+
+    // The allocation donut's title (Charts.allocationTitle) renders once the
+    // category plan appears — it's a genuine heading, not just visible text.
+    await expect(page.getByRole('heading', { name: ALLOCATION_TITLE })).toBeVisible({ timeout: 10_000 });
+    const budgetSvg = page.locator('svg[role="img"]');
+    await expect(budgetSvg).toBeVisible();
+    expect(await budgetSvg.locator('path').count()).toBeGreaterThan(0);
+
+    // Record a payment on the first checklist task so the by-payer roll-up
+    // (and its donut) has a non-zero slice.
     await page.goto('/checklist');
-    await expect(page).toHaveURL(/\/checklist/);
-
-    // Open the record-payment form on the first checklist task.
     await page.getByRole('button', { name: RECORD_CTA }).first().click();
-
     await page.getByLabel(COST_LABEL).fill('10000');
     await page.getByLabel(AMOUNT_LABEL).fill('3000');
     await page.getByLabel(PAYER_LABEL).selectOption('BOTH');
     await page.getByRole('button', { name: SAVE }).first().click();
 
-    // Task row now shows paid 3,000 of cost 10,000, with 7,000 remaining.
+    // Wait for the save to actually land (task row reflects the new payment)
+    // before navigating, so the payments nav click isn't racing the form close.
     await expect(page.getByText(PAID_OF_COST)).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(REMAINING)).toBeVisible();
 
-    // The record CTA is gone from that row's toolbar once the form is closed;
-    // navigate to the /payments roll-up (via the side nav) to verify the ledger.
     await page.getByRole('link', { name: PAYMENTS_NAV }).click();
     await expect(page).toHaveURL(/\/payments/);
 
-    // Exactly one task has a cost/payment recorded -> its row is the only
-    // button containing both the cost (₪10,000) and remaining (₪7,000) figures.
-    const paymentRow = page
-      .getByRole('button')
-      .filter({ hasText: '₪10,000' })
-      .filter({ hasText: '₪7,000' });
-    await expect(paymentRow).toBeVisible();
-    await expect(paymentRow).toContainText('₪3,000');
-
-    // The by-payer roll-up shows a "Both" total of ₪3,000. The section also
-    // renders the by-payer donut's own legend (a second "Both" <li>), so
-    // scope the query to the fallback list itself via its data-testid
-    // rather than filtering by DOM order — this fails if the fallback
-    // list is ever removed, even though the donut legend still exists.
-    const byPayerList = page.getByTestId('by-payer-list');
-    const byPayerRow = byPayerList.locator('li').filter({ hasText: BOTH_LABEL });
-    await expect(byPayerRow).toContainText('₪3,000');
-  });
-
-  test('a free couple is paywalled on /payments and has no record-payment affordance on tasks', async ({
-    page,
-  }) => {
-    const email = uniqueEmail();
-    await registerAndOnboard(page, email);
-
-    await page.goto('/payments');
-    await expect(page).toHaveURL(/\/payments/);
-    await expect(page.getByRole('heading', { name: PAYWALL_TITLE })).toBeVisible();
-
-    await page.goto('/checklist');
-    await expect(page).toHaveURL(/\/checklist/);
-    await expect(page.getByRole('button', { name: RECORD_CTA })).toHaveCount(0);
+    // The by-payer donut's title (Charts.byPayerTitle) renders alongside the
+    // existing "By payer" numeric list, with a real svg of paths behind it.
+    await expect(page.getByRole('heading', { name: BY_PAYER_TITLE })).toBeVisible({ timeout: 10_000 });
+    const paymentsSvg = page.locator('svg[role="img"]');
+    await expect(paymentsSvg).toBeVisible();
+    expect(await paymentsSvg.locator('path').count()).toBeGreaterThan(0);
   });
 });
 

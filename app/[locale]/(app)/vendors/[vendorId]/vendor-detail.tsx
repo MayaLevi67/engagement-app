@@ -153,7 +153,7 @@ export function VendorDetail({
 
           <div className="flex flex-wrap gap-2">
             {vendor.isPrivate ? (
-              <span className="rounded-card bg-accent/20 px-2 py-0.5 text-xs text-text">{t('privateBadge')}</span>
+              <span className="rounded-card bg-muted/20 px-2 py-0.5 text-xs text-text">{t('privateBadge')}</span>
             ) : null}
             {vendor.verified ? (
               <span className="rounded-card bg-primary/15 px-2 py-0.5 text-xs text-primary">{t('verifiedBadge')}</span>
