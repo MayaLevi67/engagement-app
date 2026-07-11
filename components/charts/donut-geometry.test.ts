@@ -27,4 +27,22 @@ describe('arcPath', () => {
     expect(d).toContain('A'); // arc commands
     expect(d.trim().endsWith('Z')).toBe(true);
   });
+
+  it('renders a full-ring segment (single-slice donut) as two arcs, not a degenerate dot', () => {
+    // donutSegments([5]) yields a single segment spanning the full circle: start=-90, end=270.
+    const [{ start, end }] = donutSegments([5]);
+    const d = arcPath(50, 50, 45, 28, start, end);
+
+    expect(d.startsWith('M')).toBe(true);
+    expect(d.trim().endsWith('Z')).toBe(true);
+
+    const arcCommandCount = (d.match(/A/g) ?? []).length;
+    expect(arcCommandCount).toBe(4); // split into two outer + two inner arcs
+
+    // Not degenerate: the path should visit more than a single coincident point pair.
+    // A well-formed split closes the annulus, so outer and inner radii must both appear
+    // at two distinct angles (e.g. start and start+180) rather than start === end.
+    expect(start).toBeCloseTo(-90);
+    expect(end).toBeCloseTo(270);
+  });
 });

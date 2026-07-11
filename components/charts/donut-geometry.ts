@@ -16,6 +16,8 @@ export function donutSegments(values: number[]): { start: number; end: number; p
   });
 }
 
+const FULL_CIRCLE_EPSILON = 1e-6;
+
 export function arcPath(
   cx: number,
   cy: number,
@@ -24,6 +26,20 @@ export function arcPath(
   startDeg: number,
   endDeg: number
 ): string {
+  // SVG's elliptical-arc command can't draw a full 360° sweep in one command
+  // (start === end mod 360°, making the arc degenerate). When a segment's sweep
+  // is (within epsilon of) a full circle — e.g. a single-category donut — split
+  // both the outer and inner arcs into two 180° halves so the ring still closes
+  // as a proper annulus.
+  if (endDeg - startDeg >= 360 - FULL_CIRCLE_EPSILON) {
+    const midDeg = startDeg + 180;
+    const [ox1, oy1] = polar(cx, cy, rOuter, startDeg);
+    const [oxMid, oyMid] = polar(cx, cy, rOuter, midDeg);
+    const [ix1, iy1] = polar(cx, cy, rInner, startDeg);
+    const [ixMid, iyMid] = polar(cx, cy, rInner, midDeg);
+    return `M ${ox1} ${oy1} A ${rOuter} ${rOuter} 0 1 1 ${oxMid} ${oyMid} A ${rOuter} ${rOuter} 0 1 1 ${ox1} ${oy1} M ${ix1} ${iy1} A ${rInner} ${rInner} 0 1 0 ${ixMid} ${iyMid} A ${rInner} ${rInner} 0 1 0 ${ix1} ${iy1} Z`;
+  }
+
   const large = endDeg - startDeg > 180 ? 1 : 0;
   const [ox1, oy1] = polar(cx, cy, rOuter, startDeg);
   const [ox2, oy2] = polar(cx, cy, rOuter, endDeg);
