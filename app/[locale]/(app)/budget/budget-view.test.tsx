@@ -42,7 +42,9 @@ const baseProps = {
 describe('BudgetView', () => {
   it('renders category rows with committed amounts', () => {
     renderView(baseProps);
-    expect(screen.getByText(/venue/i)).toBeTruthy();
+    // "Venue" now appears both in the allocation donut's legend and in the
+    // category breakdown row, so assert presence via getAllByText.
+    expect(screen.getAllByText(/venue/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/committed/i).length).toBeGreaterThan(0);
   });
 

@@ -7,6 +7,8 @@ import type { GiftEstimate } from '@/lib/budget/gifts';
 import { BudgetTotalCard } from './budget-total-card';
 import { GiftEstimatorCard } from './gift-estimator-card';
 import { CategoryBreakdown } from './category-breakdown';
+import { DonutChart } from '@/components/charts/donut-chart';
+import { categoryToken } from '@/components/charts/chart-palette';
 
 interface BudgetViewProps {
   locale: string;
@@ -21,10 +23,15 @@ interface BudgetViewProps {
 export function BudgetView(props: BudgetViewProps) {
   const t = useTranslations('Budget');
   const tCategory = useTranslations('TaskCategory');
+  const tCharts = useTranslations('Charts');
   const router = useRouter();
   const refresh = () => router.refresh();
 
   const fmt = (n: number) => `₪${n.toLocaleString(props.locale)}`;
+
+  const allocationSlices = props.categories
+    .filter((c) => c.recommended > 0)
+    .map((c) => ({ label: tCategory(c.category), value: c.recommended, token: categoryToken(c.category) }));
 
   function feedbackBanner() {
     const f = props.feedback;
@@ -65,7 +72,19 @@ export function BudgetView(props: BudgetViewProps) {
       {props.budgetTotal == null ? (
         <p className="rounded-card bg-surface p-6 text-center text-sm text-muted shadow-sm">{t('noBudget')}</p>
       ) : (
-        <CategoryBreakdown locale={props.locale} categories={props.categories} onChanged={refresh} />
+        <>
+          <DonutChart
+            title={tCharts('allocationTitle')}
+            slices={allocationSlices}
+            sliceTitle={(s, p) =>
+              tCharts('sliceTitle', { label: s.label, percent: Math.round(p * 100), amount: fmt(s.value) })
+            }
+            formatRow={(p) => tCharts('legendRow', { percent: Math.round(p * 100) })}
+            formatAmount={fmt}
+            emptyLabel={tCharts('empty')}
+          />
+          <CategoryBreakdown locale={props.locale} categories={props.categories} onChanged={refresh} />
+        </>
       )}
     </div>
   );
