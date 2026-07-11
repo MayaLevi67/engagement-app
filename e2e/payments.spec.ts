@@ -111,14 +111,13 @@ test.describe('payments', () => {
     await expect(paymentRow).toBeVisible();
     await expect(paymentRow).toContainText('₪3,000');
 
-    // The by-payer roll-up shows a "Both" total of ₪3,000. The section now
-    // also renders the by-payer donut's own legend (a second "Both" <li>
-    // above the numeric fallback list), so take the last match — the
-    // original text list, which stays after the chart in DOM order.
-    const byPayerSection = page.locator('section', {
-      has: page.getByRole('heading', { name: /By payer|לפי מי ששילם/i }),
-    });
-    const byPayerRow = byPayerSection.locator('li').filter({ hasText: BOTH_LABEL }).last();
+    // The by-payer roll-up shows a "Both" total of ₪3,000. The section also
+    // renders the by-payer donut's own legend (a second "Both" <li>), so
+    // scope the query to the fallback list itself via its data-testid
+    // rather than filtering by DOM order — this fails if the fallback
+    // list is ever removed, even though the donut legend still exists.
+    const byPayerList = page.getByTestId('by-payer-list');
+    const byPayerRow = byPayerList.locator('li').filter({ hasText: BOTH_LABEL });
     await expect(byPayerRow).toContainText('₪3,000');
   });
 

@@ -31,7 +31,7 @@ export function CategoryBreakdown({
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-3" data-testid="category-breakdown">
       <h2 className="font-display text-lg text-text">{t('breakdownTitle')}</h2>
       {categories.map((c) => {
         const recommendedLine = `${t('recommended')}: ${fmt(c.recommended)}`;

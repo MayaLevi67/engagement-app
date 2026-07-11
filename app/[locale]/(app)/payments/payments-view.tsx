@@ -253,7 +253,7 @@ export function PaymentsView({ rows, locale, partner1Name, partner2Name }: Payme
               formatAmount={fmt}
               emptyLabel={tCharts('empty')}
             />
-            <ul className="mt-2 flex flex-col gap-1">
+            <ul className="mt-2 flex flex-col gap-1" data-testid="by-payer-list">
               {totals.byPayer.map((entry) => (
                 <li
                   key={`${entry.payer}::${entry.payerLabel ?? ''}`}
